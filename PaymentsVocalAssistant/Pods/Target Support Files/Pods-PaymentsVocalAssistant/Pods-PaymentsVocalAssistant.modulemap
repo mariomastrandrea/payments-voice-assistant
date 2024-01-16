@@ -1,0 +1,6 @@
+framework module Pods_PaymentsVocalAssistant {
+  umbrella header "Pods-PaymentsVocalAssistant-umbrella.h"
+
+  export *
+  module * { export * }
+}

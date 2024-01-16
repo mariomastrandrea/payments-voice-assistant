@@ -1,0 +1,28 @@
+Type of intents:
+
+1) Check Balance
+- Currency (Symbol or name)
+- account (default, primary or bank name)
+
+2) Send money / 3) Request money
+- Amount (Decimal number + currency)
+- Name (surname, last name or full name, common name of relative)
+- Account (default/primary or the name of the bank)
+
+4) Check transactions
+- Account (default/primary or the name of the bank)
+- Name (surname, last name or full name, common name of relative) 
+
+-------------------------------
+
+Banks
+• Top Bank
+• Future Bank
+
+Currency
+• AED - Dirham
+• $ - dollars - bucks
+
+
+-------------------------------
+

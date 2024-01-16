@@ -1,0 +1,11 @@
+framework module PaymentsVocalAssistant {
+  umbrella header "PaymentsVocalAssistant.h"
+  export *
+
+  module * { export * }
+}
+
+module PaymentsVocalAssistant.Swift {
+  header "PaymentsVocalAssistant-Swift.h"
+  requires objc
+}

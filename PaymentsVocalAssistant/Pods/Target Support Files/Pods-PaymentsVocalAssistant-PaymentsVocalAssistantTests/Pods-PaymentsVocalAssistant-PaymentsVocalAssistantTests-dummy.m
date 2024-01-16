@@ -1,0 +1,5 @@
+#import <Foundation/Foundation.h>
+@interface PodsDummy_Pods_PaymentsVocalAssistant_PaymentsVocalAssistantTests : NSObject
+@end
+@implementation PodsDummy_Pods_PaymentsVocalAssistant_PaymentsVocalAssistantTests
+@end
