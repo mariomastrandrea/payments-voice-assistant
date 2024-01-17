@@ -36,8 +36,8 @@ class FullTokenizer {
     }
     
     public convenience init?(
-        fromVocabulary vocabularyFile: File = BertModelConfig.vocabulary,
-        isCaseInsensitive: Bool = BertModelConfig.doLowerCase
+        fromVocabulary vocabularyFile: File = BertTextClassifierConfig.vocabulary,
+        isCaseInsensitive: Bool = BertTextClassifierConfig.doLowerCase
     ) {
         guard let vocabularyPath = Bundle.main.path(
             forResource: vocabularyFile.name,
