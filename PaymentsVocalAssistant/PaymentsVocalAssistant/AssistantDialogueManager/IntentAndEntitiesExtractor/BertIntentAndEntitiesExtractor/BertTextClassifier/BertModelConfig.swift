@@ -7,12 +7,12 @@
 
 import Foundation
 
-enum BertTextClassifierConfig {
+enum BertModelConfig {
     static let maxNumTokens = 128
     static let doLowerCase = true
 
-    static let inputDimension = [1, BertTextClassifierConfig.maxNumTokens]
-    static let outputDimension = [1, BertTextClassifierConfig.maxNumTokens]
+    static let inputDimension = [1, BertModelConfig.maxNumTokens]
+    static let outputDimension = [1, BertModelConfig.maxNumTokens]
     
     // bert model file names
     static let bert_model_name = "vocal_assistant_bert_model"

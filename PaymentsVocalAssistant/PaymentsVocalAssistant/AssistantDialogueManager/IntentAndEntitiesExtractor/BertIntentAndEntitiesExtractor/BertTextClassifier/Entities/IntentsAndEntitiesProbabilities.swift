@@ -8,8 +8,7 @@
 import Foundation
 
 /**
- An object enclosing the two output of the model: the intent recognition output probabilities, one for each intent, and
- the entity extraction output probabilities, one for each entity and for each token
+ An object enclosing the two outputs of the model: (1) the intent recognition output probabilities, one for each intent, and (2) the entity extraction output probabilities, one for each entity and for each token
  */
 struct IntentsAndEntitiesProbabilities {
     let intentRecognitionOutput: [Float32]

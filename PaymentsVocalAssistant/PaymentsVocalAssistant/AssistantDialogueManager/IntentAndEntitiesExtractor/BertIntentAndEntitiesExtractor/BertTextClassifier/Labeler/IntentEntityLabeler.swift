@@ -12,7 +12,7 @@ class IntentEntityLabeler: ModelLabeler {
     typealias PredictedLabels = IntentAndEntitiesLabels
     
     func predictLabels(from probabilities: IntentsAndEntitiesProbabilities) -> IntentAndEntitiesLabels {
-        // TODO: implement method (use thresholds and map numeric labels into proper type) 
+        // TODO: implement method (use thresholds and assign numeric labels) 
         exit(1)
     }
 }
