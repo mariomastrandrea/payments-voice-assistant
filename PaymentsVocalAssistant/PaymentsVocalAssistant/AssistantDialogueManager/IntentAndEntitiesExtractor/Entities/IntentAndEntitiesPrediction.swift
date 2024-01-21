@@ -15,8 +15,8 @@ struct IntentAndEntitiesPrediction {
     let sentence: String
     let sentenceTokens: [String]
     // TODO: add the following fields using custom types
-    // predicted intent
-    // predicted low level entities
-    // predicted reconstructed entities
+    // predicted intent (+ probability)
+    // predicted low level entities (+ probabilities)
+    // predicted reconstructed entities (+ probabilities)
 }
 

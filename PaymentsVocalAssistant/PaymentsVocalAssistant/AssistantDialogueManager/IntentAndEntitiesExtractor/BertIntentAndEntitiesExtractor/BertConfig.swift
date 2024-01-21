@@ -23,8 +23,8 @@ enum BertConfig {
     static let sentenceSeparatorToken = "[SEP]"
     
     // thresholds
-    static let intentClassificationProbabilityThreshold: Float32 = 0.7
-    static let entityClassificationProbabilityThreshold: Float32 = 0.7
+    static let intentClassificationProbabilityThreshold: Float32 = 0.5
+    static let entityClassificationProbabilityThreshold: Float32 = 0.5
     
     enum TfLite {
         // TF Lite model inputs

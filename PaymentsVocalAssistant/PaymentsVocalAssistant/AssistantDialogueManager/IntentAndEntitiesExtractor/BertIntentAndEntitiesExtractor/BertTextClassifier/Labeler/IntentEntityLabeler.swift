@@ -26,7 +26,7 @@ class IntentEntityLabeler: ModelLabeler {
         let (predictedIntentLabel, predictedIntentProbability) = mapToLabels(
             outputProbabilities: probabilities.intentRecognitionOutput,
             threshold: BertConfig.intentClassificationProbabilityThreshold,
-            defaultLabel: VocalAssistantConfig.defaultIntentLabel
+            defaultLabel: PaymentsIntent.defaultLabel
         )
          
         // 2. map entities probabilities to labels
@@ -37,7 +37,7 @@ class IntentEntityLabeler: ModelLabeler {
             let (tokenPredictedEntityLabel, tokenPredictedEntityProbability) = mapToLabels(
                 outputProbabilities: tokenEntitiesProbabilities,
                 threshold: BertConfig.entityClassificationProbabilityThreshold,
-                defaultLabel: VocalAssistantConfig.defaultEntityLabel
+                defaultLabel: PaymentsEntity.defaultLabel
             )
             
             predictedEntitiesLabels.append(tokenPredictedEntityLabel)

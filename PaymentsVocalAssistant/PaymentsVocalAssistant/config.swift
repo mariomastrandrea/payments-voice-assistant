@@ -12,20 +12,7 @@ enum GlobalConfig {
 }
 
 enum VocalAssistantConfig {
-    // mapping num to intent label
-    static let intentLabels = [
-        "none",
-        "check_balance",
-        "check_transactions",
-        "send_money",
-        "request_money",
-        "yes",
-        "no"
-    ]
-    
-    static var numIntentLabels: Int {
-        return intentLabels.count
-    }
+   
     
     static var defaultIntentLabel = 0
     
