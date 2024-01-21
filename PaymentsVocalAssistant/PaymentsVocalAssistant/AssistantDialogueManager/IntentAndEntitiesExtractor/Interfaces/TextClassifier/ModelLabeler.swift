@@ -13,11 +13,12 @@ import Foundation
 protocol ModelLabeler {
     associatedtype ModelOutput
     associatedtype PredictedLabels
+    associatedtype LabelerError: Error
     
     /**
      Predict the labels of an input sample, given the raw probabilities produced by a Machine Learning model
      - parameter probabilities: an object containing the raw probabilities produced by a model inference
      - returns: an object containing the predicted labels
      */
-    func predictLabels(from probabilities: ModelOutput) -> PredictedLabels
+    func predictLabels(from probabilities: ModelOutput) -> Result<PredictedLabels, LabelerError>
 }

@@ -13,11 +13,12 @@ import Foundation
 protocol MachineLearningModel {
     associatedtype RawInput
     associatedtype RawOutput
+    associatedtype ModelError: Error
     
     /**
      Perform an inference providing a raw input to the model
      - parameter input: Raw input specific to the model
      - returns: Raw output provided by the internal model
      */
-    func execute(input: RawInput) -> RawOutput
+    func execute(input: RawInput) -> Result<RawOutput, ModelError>
 }

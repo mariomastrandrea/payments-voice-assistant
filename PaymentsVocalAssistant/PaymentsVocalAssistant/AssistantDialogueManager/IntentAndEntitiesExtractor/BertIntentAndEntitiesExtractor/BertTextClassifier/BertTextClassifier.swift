@@ -9,16 +9,16 @@ import Foundation
 
 class BertTextClassifier: IntentAndEntitiesClassifier {
     typealias Preprocessor = BertPreprocessor
-    typealias Model = BertTFLiteIntentClassifierEntityExtractor
+    typealias Model = BertTFLiteIntentAndEntitiesClassifier
     typealias Labeler = IntentEntityLabeler
 
     var preprocessor: BertPreprocessor
-    var model: BertTFLiteIntentClassifierEntityExtractor
+    var model: BertTFLiteIntentAndEntitiesClassifier
     var labeler: IntentEntityLabeler
     
     init(
         preprocessor: BertPreprocessor,
-        model: BertTFLiteIntentClassifierEntityExtractor,
+        model: BertTFLiteIntentAndEntitiesClassifier,
         labeler: IntentEntityLabeler
     ) {
         self.preprocessor = preprocessor
@@ -26,33 +26,39 @@ class BertTextClassifier: IntentAndEntitiesClassifier {
         self.labeler = labeler
     }
     
-    func classify(text: String) -> (input: BertInput, output: IntentAndEntitiesRawLabels) {
+    func classify(text: String) -> BertExtractorResult<(input: BertInput, output: IntentAndEntitiesRawLabels)> {
         let t0 = Date()
         
-        // preprocess input
-        let encodedText = self.preprocessor.preprocess(text: text)
+        // 1. preprocess the input text to make it suitable for the BERT model
+        let preprocessingResult = logElapsedTimeInMs(of: "preprocessing") {
+            self.preprocessor.preprocess(text: text)
+        }
         
-        let t_after_preprocessing = Date()
-        let ms_after_preprocessing = 1000.0 * t_after_preprocessing.timeIntervalSince(t0)
-        log("Preprocessing time: \(ms_after_preprocessing) ms")
+        guard let encodedText = preprocessingResult.success else {
+            return preprocessingResult.failureResult()
+        }
         
-        // process input data and produce the model raw output
-        let modelOutput = self.model.execute(input: encodedText)
+        // 2. process input data and produce the model raw output
+        let inferenceResult = logElapsedTimeInMs(of: "inference") {
+            self.model.execute(input: encodedText)
+        }
         
-        let t_after_inference = Date()
-        let ms_after_inference = 1000.0 * t_after_inference.timeIntervalSince(t_after_preprocessing)
-        log("Inference time: \(ms_after_inference) ms")
+        guard let modelOutputProbabilities = inferenceResult.success else {
+            return inferenceResult.failureResult()
+        }
         
-        // assign labels from the model raw output
-        let modelPrediction = self.labeler.predictLabels(from: modelOutput)
+        // 3. assign labels from the model raw output
+        let labellingResult = logElapsedTimeInMs(of: "entire classification", since: t0) {
+            self.labeler.predictLabels(from: modelOutputProbabilities)
+        }
         
-        let t_after_prediction = Date()
-        let total_ms_for_classification = 1000.0 * t_after_prediction.timeIntervalSince(t0)
-        log("Total classification time: \(total_ms_for_classification) ms")
+        guard let modelPrediction = labellingResult.success else {
+            return labellingResult.failureResult()
+        }
         
-        return (
+        return .success((
             input:  encodedText,
             output: modelPrediction
-        )
+        ))
     }
 }

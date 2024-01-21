@@ -24,6 +24,12 @@ protocol TextClassifier {
     
     associatedtype PredictedLabels
     
+    // the Error type must be the same across all the classifier components
+    associatedtype TextClassifierError where TextClassifierError: Error,
+              TextClassifierError == Preprocessor.PreprocessorError,
+              TextClassifierError == Model.ModelError,
+              TextClassifierError == Labeler.LabelerError
+    
     /**
      Preprocessor object, specific to the model, encoding an input string into a proper input format suitable for the internal model
      */
@@ -44,5 +50,8 @@ protocol TextClassifier {
      - parameter text: A string containing the sample to be classified
      - returns: The encoded input and the prediction made by the classifier in a high level format
      */
-    func classify(text: String) -> (input: Preprocessor.EncodedInput, output: PredictedLabels)
+    func classify(text: String) -> Result<
+        (input: Preprocessor.EncodedInput, output: PredictedLabels),
+        TextClassifierError
+    >
 }

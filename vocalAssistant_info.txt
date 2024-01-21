@@ -1,28 +1,58 @@
-Type of intents:
+Types of user intents:
+
+0) none
 
 1) Check Balance
 - Currency (Symbol or name)
 - account (default, primary or bank name)
 
-2) Send money / 3) Request money
+2) Check transactions
+- Account (default/primary or the name of the bank)
+- Name (surname, last name or full name, common name of relative) 
+
+3) Send money / 4) Request money
 - Amount (Decimal number + currency)
 - Name (surname, last name or full name, common name of relative)
 - Account (default/primary or the name of the bank)
 
-4) Check transactions
-- Account (default/primary or the name of the bank)
-- Name (surname, last name or full name, common name of relative) 
+5) yes
+
+6) no
+
+
+-----------
+Types of Named Entities:
+
+0) O (out)
+(No entity)
+
+1) B-AMOUNT
+2) I-AMOUNT
+(Amount value made of currency (literal or symbol) + sum (with or without decimal part, literal or numeric)
+
+3) B-BANK
+4) I-BANK
+(Name of the bank, or primary/default one)
+
+5) B-CURRENCY
+6) I-CURRENCY
+(Just the currency, literal or symbol)
+
+7) B-USER
+8) I-USER  
+(Full name or just first name, or common name + first name)
+
 
 -------------------------------
+Main Entities:
 
 Banks
 • Top Bank
 • Future Bank
 
-Currency
+Currencies
 • AED - Dirham
-• $ - dollars - bucks
-
+• $ - dollars
 
 -------------------------------
 

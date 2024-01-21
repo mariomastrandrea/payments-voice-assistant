@@ -10,5 +10,5 @@ import Foundation
 /**
  A generic interface for a Text Classifier specialized in prediction of Intents and Named Entities
  */
-protocol IntentAndEntitiesClassifier:
-    TextClassifier where PredictedLabels == IntentAndEntitiesRawLabels { }
+protocol IntentAndEntitiesClassifier: TextClassifier
+    where PredictedLabels == IntentAndEntitiesRawLabels {  }

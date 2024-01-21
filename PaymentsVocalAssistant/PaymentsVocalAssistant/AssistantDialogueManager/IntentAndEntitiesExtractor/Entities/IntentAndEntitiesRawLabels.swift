@@ -8,10 +8,15 @@
 import Foundation
 
 /**
- An object enclosing the raw labels predicted by the model: the intent label (from the intent classification task) and
+ An object enclosing the raw labels predicted by the model and the corresponding probabilities: the intent label (from the intent classification task) and
  the entities labels (from the Named Entity Recognition task)
  */
 struct IntentAndEntitiesRawLabels {
-    let intentLabel: Int32
-    let entitiesLabels: [Int32]
+    // intent recognition
+    let intentLabel: Int
+    let intentProbability: Float32
+    
+    // entity extraction
+    let entitiesLabels: [Int]
+    let entitiesProbabilities: [Float32]
 }

@@ -12,11 +12,12 @@ import Foundation
  */
 protocol TextPreprocessor {
     associatedtype EncodedInput
+    associatedtype PreprocessorError: Error
     
     /**
      Preprocess an input text transforming it into a proper format suitable for the model
      - parameter text: the input text string
      - returns: a model-specific object containing the properly formatted input
      */
-    func preprocess(text: String) -> EncodedInput
+    func preprocess(text: String) -> Result<EncodedInput, PreprocessorError>
 }

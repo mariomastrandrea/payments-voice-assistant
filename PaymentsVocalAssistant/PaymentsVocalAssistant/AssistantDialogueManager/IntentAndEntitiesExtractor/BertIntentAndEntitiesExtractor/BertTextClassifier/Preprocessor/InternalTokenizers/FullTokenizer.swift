@@ -36,10 +36,10 @@ class FullTokenizer {
     }
     
     public convenience init?(
-        fromVocabulary vocabularyFile: File = BertTextClassifierConfig.vocabulary,
-        isCaseInsensitive: Bool = BertTextClassifierConfig.doLowerCase
+        fromVocabulary vocabularyFile: File = BertConfig.vocabularyFile,
+        isCaseInsensitive: Bool = BertConfig.doLowerCase
     ) {
-        guard let vocabularyPath = Bundle.main.path(
+        guard let vocabularyPath = Bundle(for: Self.self).path(
             forResource: vocabularyFile.name,
             ofType: vocabularyFile._extension
         )
@@ -70,12 +70,18 @@ class FullTokenizer {
         self.init(with: tokenIdsMappings, isCaseInsensitive: isCaseInsensitive)
     }
 
+    /**
+        Split a text string in an array of tokens
+     */
     func tokenize(_ text: String) -> [String] {
         return basicTokenizer.tokenize(text).flatMap {
             wordpieceTokenizer.tokenize($0)
         }
     }
 
+    /**
+        Convert string tokens into the corresponding numeric IDs
+     */
     func convertToIDs(tokens: [String]) -> [Int32] {
         return tokens.compactMap { vocabularyIDs[$0] }
     }
