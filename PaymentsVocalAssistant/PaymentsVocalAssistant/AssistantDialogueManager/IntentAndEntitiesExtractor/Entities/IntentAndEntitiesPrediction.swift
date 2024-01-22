@@ -12,11 +12,12 @@ import Foundation
  the entities (from the Named Entity Recognition task)
  */
 struct IntentAndEntitiesPrediction {
+    // input
     let sentence: String
     let sentenceTokens: [String]
-    // TODO: add the following fields using custom types
-    // predicted intent (+ probability)
-    // predicted low level entities (+ probabilities)
-    // predicted reconstructed entities (+ probabilities)
+    
+    // prediction
+    let predictedIntent: PaymentsIntent
+    let predictedEntities: [PaymentsEntity]
 }
 

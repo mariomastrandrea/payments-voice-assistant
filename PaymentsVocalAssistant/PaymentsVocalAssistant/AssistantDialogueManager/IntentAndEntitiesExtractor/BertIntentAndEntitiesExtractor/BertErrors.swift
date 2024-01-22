@@ -16,6 +16,10 @@ enum BertExtractorError: IntentAndEntitiesExtractorError {
     case tfLiteModelFailedInference(why: String)
     case tfLiteModelFailedOutput(why: String)
     
+    // Bert intent and entities extractor
+    case intentLabelNotValid(intentLabel: Int)
+    case entityLabelNotValid(entityLabel: Int)
+    
     var description: String {
         switch self {
         case .failedBertTokenization(let text):
@@ -26,6 +30,10 @@ enum BertExtractorError: IntentAndEntitiesExtractorError {
             return "Failed inference on TF Lite interpreter. Error: \(why)"
         case .tfLiteModelFailedOutput(let why):
             return "Failed to retrieve output Tensors from TF Lite interpreter. Error: \(why)"
+        case .intentLabelNotValid(let intentLabel):
+            return "Encountered invalid intent label: \(intentLabel)"
+        case .entityLabelNotValid(let entityLabel):
+            return "Encountered invalid entity label: \(entityLabel)"
         }
     }
 }

@@ -169,6 +169,12 @@ extension Array where Element: Comparable {
     }
 }
 
+extension String {
+    var isNotEmpty: Bool {
+        return !self.isEmpty
+    }
+}
+
 
 // MARK: utility entities
 
