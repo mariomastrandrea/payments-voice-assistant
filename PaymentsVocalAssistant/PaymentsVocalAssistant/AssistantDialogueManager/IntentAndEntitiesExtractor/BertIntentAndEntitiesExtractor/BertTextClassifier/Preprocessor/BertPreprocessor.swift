@@ -17,16 +17,7 @@ class BertPreprocessor: TextPreprocessor {
     // properties
     private var tokenizer: BertTokenizer
     
-    // Singleton
-    static var instance: BertPreprocessor? = {
-        guard let bertTokenizer = BertTokenizer() else { return nil }
-        
-        instance = BertPreprocessor(tokenizer: bertTokenizer)
-        log("created BERT preprocessor", type: .success)
-        return instance
-    }()
-    
-    private init(tokenizer: BertTokenizer) {
+    init(tokenizer: BertTokenizer) {
         self.tokenizer = tokenizer
     }
     

@@ -11,21 +11,35 @@ import Foundation
  Object performing Intent classification and Dialogue State Tracking (DST) over the user speech's transcript
  */
 public class AssistantDialogueManager {
-    private var intentAndEntitiesExtractor: (any IntentAndEntitiesExtractor)?
+    let intentAndEntitiesExtractor: any IntentAndEntitiesExtractor
     
-    init?() {
-        guard let extractor = BertIntentAndEntitiesExtractor.instance else {
-            // an error occurred in the initialization of the Intent and Entities extractor
-            return nil
+    // TODO: define user contact and user bank account types
+    private let userContacts: [Any]
+    private let userBankAccounts: [Any]
+    
+    // TODO: add conversation state
+    
+    init(intentAndEntitiesExtractor: any IntentAndEntitiesExtractor, userContacts: [Any], userBankAccounts: [Any]) {
+        self.intentAndEntitiesExtractor = intentAndEntitiesExtractor
+        self.userContacts = userContacts
+        self.userBankAccounts = userBankAccounts
+    }
+    
+    // TODO: add proper return type
+    private func recognizeIntentAndExtractEntities(from text: String) {
+        let recognitionResult = self.intentAndEntitiesExtractor.recognize(from: text)
+        
+        guard recognitionResult.isSuccess else {
+            // TODO: manage errors
+            return
         }
-        self.intentAndEntitiesExtractor = extractor
+        
+        /* TODO: perform matching between the found entities and all the possible ones, like possible banks and user contacts */
     }
     
-    func recognizeIntentAndExtractEntities(from userSpeech: String) {
-        /* TODO: implement method (perform matching between the found entities and all the possible ones, like possible banks and user contacts) */
+    // TODO: add proper return type
+    // TODO: process user input transcript and generate output managing the conversation state
+    func ask(_ userTranscript: String) {
+        self.recognizeIntentAndExtractEntities(from: userTranscript)
     }
-    
-    // TODO: add method receiving user input transcript and managing the conversation state
-    
 }
-    

@@ -1,98 +1,11 @@
 //
-//  Utils.swift
+//  extensions.swift
 //  PaymentsVocalAssistant
 //
-//  Created by Mario Mastrandrea on 16/01/24.
+//  Created by Mario Mastrandrea on 23/01/24.
 //
 
 import Foundation
-
-
-// MARK: utility functions
-
-enum LogType {
-    case error
-    case warning
-    case info
-    case success
-    
-    var symbol: String {
-        switch self {
-        case .error:   return "❌"
-        case .warning: return "⚠️"
-        case .info:    return "ℹ️"
-        case .success: return "✅"
-        }
-    }
-}
-
-private func log(_ messages: [String], type: LogType = .info) {
-    if !GlobalConfig.enableLogs { return }
-    
-    for m in messages {
-        print("\(type.symbol) Log: \(m)")
-    }
-}
-
-func log(_ messages: String..., type: LogType = .info) {
-    log(messages, type: type)
-}
-
-func logError(_ messages: String...) {
-    log(messages, type: .error)
-}
-
-func logWarning(_ messages: String...) {
-    log(messages, type: .warning)
-}
-
-func logInfo(_ messages: String...) {
-    log(messages, type: .info)
-}
-
-func logSuccess(_ messages: String...) {
-    log(messages, type: .success)
-}
-
-func delay(ms: Int) async {
-    let seconds = Double(ms) / 1000.0
-    await withCheckedContinuation { continuation in
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-            continuation.resume()
-        }
-    }
-}
-
-func logElapsedTimeInMs<T, E>(
-    of operationName: String,
-    since: Date? = nil,
-    _ operation: () -> Result<T, E>
-) -> Result<T, E> where E: Error {
-    
-    let t0: Date
-    
-    if let since = since {
-        t0 = since
-    }
-    else {
-        t0 = Date()
-    }
-    
-    // execute operation
-    let result = operation()
-        
-    // log elapsed time only if operation has been successfully executed
-    if result.isSuccess {
-        let tf = Date()
-        let elapsedMs = 1000.0 * tf.timeIntervalSince(t0)
-        log("Elapsed time for \(operationName): \(elapsedMs) ms", type: .info)
-    }
-    
-    return result
-}
-
-
-// MARK: utility extensions
 
 extension Result {
     var isFailure: Bool {
@@ -181,21 +94,11 @@ extension String {
         guard self.starts(with: substring) else { return self }
         return self.replacingCharacters(in: self.range(of: substring)!, with: "")
     }
-}
-
-
-// MARK: utility entities
-
-struct File {
-    let name: String
-    let _extension: String
-    let description: String
-
-    init(name: String, extension _extension: String) {
-        self.name = name
-        self._extension = _extension
-        self.description = "\(name).\(_extension)"
+    
+    func matches(_ pattern: String) -> Bool {
+        let regex = try! NSRegularExpression(pattern: pattern)
+        
+        return regex.firstMatch(in: self, options: [],
+                         range: NSRange(location: 0, length: self.utf16.count)) != nil
     }
 }
-
-

@@ -47,6 +47,9 @@ enum BertConfig {
     /** In order to be considered valid, an entity must globally exceed this threshold probability , */
     static let entityGlobalProbabilityThreshold: Float32 = 0.5
     
+    // entities reconstruction
+    static let punctuationSymbolsToJoin: [String] = [",", ".", "'", "-"]
+    
     enum TfLite {
         // TF Lite model inputs
         static let inputWordIdsIndex = 0

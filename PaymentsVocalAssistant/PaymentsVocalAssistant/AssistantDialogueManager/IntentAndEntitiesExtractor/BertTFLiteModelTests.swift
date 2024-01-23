@@ -12,11 +12,16 @@ final class BertTFLiteModelTests: XCTestCase {
     var originalLogFlagValue: Bool!
     let text1 = "I need the transaction history involving Ylenia Leone"
     let text2 = "I am instructing a collection of $412.90 from sister-in-law Marta through my CaixaBank"
+    var vocalAssistant: PaymentsVocalAssistant!
     
     override func setUpWithError() throws {
         // disable flag
         self.originalLogFlagValue = GlobalConfig.enableLogs
         GlobalConfig.enableLogs = false
+        
+        let vocalAssistant = PaymentsVocalAssistant(type: .bert)
+        XCTAssertNotNil(vocalAssistant, "Failed to initialize PaymentsVocalAssistant")
+        self.vocalAssistant = vocalAssistant!
     }
     
     override func tearDownWithError() throws {
@@ -25,12 +30,10 @@ final class BertTFLiteModelTests: XCTestCase {
     }
 
     func testExtractedIntentAndEntities() throws {
-        let text = text2
+        let text = "I want to send 47 cents to Andrea Cic"
+        let dialogueManager = self.vocalAssistant.newConversation()
 
-        let extractor = BertIntentAndEntitiesExtractor.instance
-        XCTAssertNotNil(extractor, "Error in extractor initialization")
-        let intentAndEntitiesExtractor = extractor!
-        
+        let intentAndEntitiesExtractor = dialogueManager.intentAndEntitiesExtractor
         let recognitionOutput = intentAndEntitiesExtractor.recognize(from: text)
         XCTAssert(recognitionOutput.isSuccess)
         
@@ -47,8 +50,11 @@ final class BertTFLiteModelTests: XCTestCase {
     
     func testTFLitePerformance() throws {
         let text = "Please arrange a payment of AED419 and 14 cents to Rodolfo"
-        let preprocessor = BertPreprocessor.instance!
-        let tfLiteClassifier = BertTFLiteIntentAndEntitiesClassifier.instance!
+        let dialogueManager = self.vocalAssistant.newConversation()
+        let textClassifier = dialogueManager.intentAndEntitiesExtractor.intentAndEntitiesClassifier as! BertTextClassifier
+        
+        let preprocessor = textClassifier.preprocessor
+        let tfLiteClassifier = textClassifier.model
         
         let preprocessingOutput = preprocessor.preprocess(text: text)
         XCTAssert(preprocessingOutput.isSuccess, "failed preprocessing")

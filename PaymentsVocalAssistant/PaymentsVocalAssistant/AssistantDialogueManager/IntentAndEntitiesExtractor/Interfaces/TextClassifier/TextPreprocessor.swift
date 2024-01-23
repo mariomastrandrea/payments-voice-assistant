@@ -10,7 +10,7 @@ import Foundation
 /**
  A generic object to preprocess text and convert it in a proper format for a `TextClassifier` model
  */
-protocol TextPreprocessor {
+protocol TextPreprocessor<PreprocessorError> {
     associatedtype EncodedInput
     associatedtype PreprocessorError: Error
     

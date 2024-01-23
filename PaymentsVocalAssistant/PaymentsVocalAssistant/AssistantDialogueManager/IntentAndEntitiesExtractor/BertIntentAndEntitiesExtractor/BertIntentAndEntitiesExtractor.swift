@@ -14,21 +14,10 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
     typealias Classifier = BertTextClassifier
     typealias CustomError = BertExtractorError
     
-    // singleton
-    private static var _instance: BertIntentAndEntitiesExtractor?
-    static var instance: BertIntentAndEntitiesExtractor? {
-        if _instance != nil { return _instance }
-        
-        guard let classifier = BertTextClassifier.instance else { return nil }
-        _instance = BertIntentAndEntitiesExtractor(classifier: classifier)
-        
-        return _instance
-    }
-    
     // properties
     var intentAndEntitiesClassifier: BertTextClassifier
     
-    private init(classifier: BertTextClassifier) {
+    init(classifier: BertTextClassifier) {
         self.intentAndEntitiesClassifier = classifier
     }
 
@@ -48,7 +37,7 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
             label: classifierOutput.intentLabel,
             probability: classifierOutput.intentProbability
         ) else {
-            return .failure(.intentLabelNotValid(intentLabel: classifierOutput.intentLabel))
+            return .failure(BertExtractorError.intentLabelNotValid(intentLabel: classifierOutput.intentLabel))
         }
         
         // 2. extract entities
@@ -65,7 +54,7 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
             
             // check label range correctness
             guard PaymentsEntity.isValid(label: label) else {
-                return .failure(.entityLabelNotValid(entityLabel: label))
+                return .failure(BertExtractorError.entityLabelNotValid(entityLabel: label))
             }
             
             if PaymentsEntity.isBioBegin(label: label) {
@@ -147,13 +136,36 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
      Reconstruct the original entity String from its tokens
      */
     private func reconstruct(entity entityType: PaymentsEntityType, fromReconstructedTokens tokens: [String]) -> String {
-        let tokens = tokens
-        
-        for i in 0..<tokens.count {
-            // join punctuation tokens (".", ",", "-", "'") with adjacent tokens
+        var reconstructedEntityTokens = tokens
+        let punctuationRegex = "^[\(BertConfig.punctuationSymbolsToJoin.joined())]$"
+
+        var i = 0
+        while i < reconstructedEntityTokens.count {
+            let token = reconstructedEntityTokens[i]
             
+            if token.matches(punctuationRegex) {
+                // join punctuation tokens with adjacent tokens
+                var joinedAdjacentTokens = token
+                
+                if i-1 >= 0 {
+                    let previousToken = reconstructedEntityTokens.remove(at: i-1)
+                    i -= 1    // re-align index
+                    joinedAdjacentTokens.insert(contentsOf: previousToken, at: joinedAdjacentTokens.startIndex)
+                }
+                
+                if i+1 < reconstructedEntityTokens.count {
+                    let nextToken = reconstructedEntityTokens.remove(at: i+1)
+                    joinedAdjacentTokens.append(nextToken)
+                }
+                
+                // override old token with the new one
+                reconstructedEntityTokens[i] = joinedAdjacentTokens
+            }
+            
+            i += 1
         }
         
-        return ""
+        let reconstructedEntity = reconstructedEntityTokens.joined(separator: " ")
+        return reconstructedEntity
     }
 }

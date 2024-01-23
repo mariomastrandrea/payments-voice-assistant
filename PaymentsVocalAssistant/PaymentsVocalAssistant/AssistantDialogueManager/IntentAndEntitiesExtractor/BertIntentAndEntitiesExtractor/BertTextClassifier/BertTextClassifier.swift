@@ -10,27 +10,17 @@ import Foundation
 class BertTextClassifier: IntentAndEntitiesClassifier {
     typealias Preprocessor = BertPreprocessor
     typealias Model = BertTFLiteIntentAndEntitiesClassifier
-    typealias Labeler = IntentEntityLabeler
-
-    // singleton
-    static var instance: BertTextClassifier? = {
-        guard let preprocessor = BertPreprocessor.instance else { return nil }
-        guard let model = BertTFLiteIntentAndEntitiesClassifier.instance else { return nil }
-        let labeler = IntentEntityLabeler.instance
-        
-        instance = BertTextClassifier(preprocessor: preprocessor, model: model, labeler: labeler)
-        return instance
-    }()
+    typealias Labeler = BertIntentEntityLabeler
     
     // properties
     var preprocessor: BertPreprocessor
     var model: BertTFLiteIntentAndEntitiesClassifier
-    var labeler: IntentEntityLabeler
+    var labeler: BertIntentEntityLabeler
     
-    private init(
+    init(
         preprocessor: BertPreprocessor,
         model: BertTFLiteIntentAndEntitiesClassifier,
-        labeler: IntentEntityLabeler
+        labeler: BertIntentEntityLabeler
     ) {
         self.preprocessor = preprocessor
         self.model = model

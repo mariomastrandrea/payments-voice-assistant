@@ -7,10 +7,12 @@
 
 import Foundation
 
+
+
 /**
  A generic interface for an object extracting the intent and its relevant entities from a transcript
  */
-protocol IntentAndEntitiesExtractor {
+protocol IntentAndEntitiesExtractor<CustomError> {
     associatedtype Classifier : IntentAndEntitiesClassifier
 
     // the custom error must comply to the `IntentAndEntitiesExtractorError`
@@ -29,3 +31,4 @@ protocol IntentAndEntitiesExtractor {
      */
     func recognize(from userSpeech: String) -> Result<IntentAndEntitiesPrediction, CustomError>
 }
+

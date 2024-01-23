@@ -10,7 +10,7 @@ import Foundation
 /**
  A generic interface for a Text Classifier
  */
-protocol TextClassifier {
+protocol TextClassifier<TextClassifierError> {
     associatedtype Preprocessor: TextPreprocessor
     
     // Preprocessor output must be compatible with the Model input
