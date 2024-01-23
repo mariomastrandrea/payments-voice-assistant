@@ -18,16 +18,13 @@ class BertPreprocessor: TextPreprocessor {
     private var tokenizer: BertTokenizer
     
     // Singleton
-    private static var _instance: BertPreprocessor? = nil
-    static var instance: BertPreprocessor? {
-        if _instance != nil { return _instance }
-        
+    static var instance: BertPreprocessor? = {
         guard let bertTokenizer = BertTokenizer() else { return nil }
         
-        _instance = BertPreprocessor(tokenizer: bertTokenizer)
+        instance = BertPreprocessor(tokenizer: bertTokenizer)
         log("created BERT preprocessor", type: .success)
-        return _instance
-    }
+        return instance
+    }()
     
     private init(tokenizer: BertTokenizer) {
         self.tokenizer = tokenizer
@@ -68,12 +65,14 @@ class BertPreprocessor: TextPreprocessor {
         let paddingLength = BertConfig.sequenceLength - tokenIds.count
         tokenIds.append(contentsOf: [Int32](repeating: 0, count: paddingLength))
         attentionMask.append(contentsOf: [Int32](repeating: 0, count: paddingLength))
-        
-        return .success(BertInput(
-            sentenceTokens: inputTokens,
-            inputWordIds: tokenIds,
-            inputTypeIds: typeIds,
-            inputMask: attentionMask
-        ))
+                
+        return .success(
+            BertInput(
+                sentenceTokens: inputTokens,
+                inputWordIds: tokenIds,
+                inputTypeIds: typeIds,
+                inputMask: attentionMask
+            )
+        )
     }
 }

@@ -90,13 +90,18 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
                 let globalEntityProbability = entityLabelsProbabilities.reduce(Float32(1.0), *)
                 
                 if globalEntityProbability >= BertConfig.entityGlobalProbabilityThreshold {
+                    let reconstructedTokens = self.reconstruct(subtokens: entityTokens)
+                    let reconstructedEntityString = self.reconstruct(entity: entityType, fromReconstructedTokens: reconstructedTokens)
+                    
                     // save extracted entity
                     let extractedEntity = PaymentsEntity(
                         type: entityType,
+                        reconstructedEntity: reconstructedEntityString,
+                        entityProbability: globalEntityProbability,
+                        reconstructedTokens: reconstructedTokens,
                         rawTokens: entityTokens,
                         tokensLabels: entityLabels,
-                        tokensLabelsProbabilities: entityLabelsProbabilities,
-                        entityProbability: globalEntityProbability
+                        tokensLabelsProbabilities: entityLabelsProbabilities
                     )
                     
                     entities.append(extractedEntity)
@@ -112,5 +117,43 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
                 predictedEntities: entities
             )
         )
+    }
+    
+    /**
+     Reconstruct subtokens (if any) into entire tokens. In this way, all the words represent a single tokens (no word is split in subtokens)
+     */
+    private func reconstruct(subtokens: [String]) -> [String] {
+        var reconstructedTokens = [String]()
+        var lastToken = ""
+        
+        for (i, token) in subtokens.enumerated() {
+            if i > 0 && token.starts(with: BertConfig.subtokenIdentifier) {
+                
+                lastToken += token.removeLeading(BertConfig.subtokenIdentifier)
+            }
+            else {
+                if lastToken.isNotEmpty {
+                    reconstructedTokens.append(lastToken)
+                }
+                lastToken = token
+            }
+        }
+        
+        reconstructedTokens.append(lastToken)
+        return reconstructedTokens
+    }
+    
+    /**
+     Reconstruct the original entity String from its tokens
+     */
+    private func reconstruct(entity entityType: PaymentsEntityType, fromReconstructedTokens tokens: [String]) -> String {
+        let tokens = tokens
+        
+        for i in 0..<tokens.count {
+            // join punctuation tokens (".", ",", "-", "'") with adjacent tokens
+            
+        }
+        
+        return ""
     }
 }

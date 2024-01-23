@@ -8,25 +8,33 @@
 import Foundation
 
 enum BertConfig {
+    enum ModelType {
+        case mini
+        case small
+        case medium
+        
+        var fileName: String {
+            return "vocal_assistant_bert_\(self)_classifier"
+        }
+    }
+    
+    // ** Select BERT model **
+    static let selectedModel: ModelType = .medium
+    
     static let sequenceLength = 128
     static let doLowerCase = true
 
     static let inputDimension = [1, BertConfig.sequenceLength]
     static let outputDimension = [1, BertConfig.sequenceLength]
-        
-    // models
-    static let miniBertModelFileName = "vocal_assistant_bert_mini_classifier"
-    static let smallBertModelFileName = "vocal_assistant_bert_small_classifier"
-    static let mediumBertModelFileName = "vocal_assistant_bert_medium_classifier"
-    
-    // resources
-    static let vocabularyFile = File(name: "vocab", extension: "txt")
-    static let modelFile = File(name: mediumBertModelFileName, extension: "tflite")
     
     // special tokens
     static let startOfSequenceToken = "[CLS]"
     static let sentenceSeparatorToken = "[SEP]"
     static let subtokenIdentifier = "##"
+    
+    // resources
+    static let vocabularyFile = File(name: "vocab", extension: "txt")
+    static let modelFile = File(name: selectedModel.fileName, extension: "tflite")
     
     // thresholds
     

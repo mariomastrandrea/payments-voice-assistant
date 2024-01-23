@@ -17,7 +17,7 @@ struct PaymentsIntent: CustomStringConvertible {
     var description: String {
         return """
         {
-            intent_type: \(self.type),
+            intent_type: \"\(self.type)\",
             probability: \(self.probability)
         }
         """

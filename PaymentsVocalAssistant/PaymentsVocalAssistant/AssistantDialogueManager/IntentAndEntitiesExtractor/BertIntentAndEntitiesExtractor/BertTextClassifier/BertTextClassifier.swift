@@ -13,17 +13,14 @@ class BertTextClassifier: IntentAndEntitiesClassifier {
     typealias Labeler = IntentEntityLabeler
 
     // singleton
-    private static var _instance: BertTextClassifier?
-    static var instance: BertTextClassifier? {
-        if _instance != nil { return _instance }
-        
+    static var instance: BertTextClassifier? = {
         guard let preprocessor = BertPreprocessor.instance else { return nil }
         guard let model = BertTFLiteIntentAndEntitiesClassifier.instance else { return nil }
         let labeler = IntentEntityLabeler.instance
         
-        _instance = BertTextClassifier(preprocessor: preprocessor, model: model, labeler: labeler)
-        return _instance
-    }
+        instance = BertTextClassifier(preprocessor: preprocessor, model: model, labeler: labeler)
+        return instance
+    }()
     
     // properties
     var preprocessor: BertPreprocessor

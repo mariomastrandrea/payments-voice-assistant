@@ -9,46 +9,36 @@ import Foundation
 
 struct PaymentsEntity: CustomStringConvertible {
     let type: PaymentsEntityType
-    let rawTokens: [String]
-    let tokensLabels: [Int]
-    let tokensLabelsProbabilities: [Float32]
+    let reconstructedEntity: String
     let entityProbability: Float32
-    
+    let reconstructedTokens: [String]
+    private let rawTokens: [String]
+    private let tokensLabels: [Int]
+    private let tokensLabelsProbabilities: [Float32]
+
     var description: String {
         return """
         {
-            entity_type: \(self.type),
-            reconstructed_tokens: \(self.bertReconstructedTokens),
+            entity_type: \"\(self.type)\",
+            reconstructed_entity: \"\(self.reconstructedEntity)\",
+            entity_probability: \(self.entityProbability),
+            reconstructed_tokens: \(self.reconstructedTokens),
             raw_tokens: \(self.rawTokens),
-            tokensLabels: \(self.tokensLabels.map{ Self.bioLabels[$0] }),
-            tokensLabelsProbabilities: \(self.tokensLabelsProbabilities),
-            entityProbability: \(self.entityProbability)
+            tokens_labels: \(self.tokensLabels.map{ Self.bioLabels[$0] }),
+            tokens_labels_probabilities: \(self.tokensLabelsProbabilities),
         }
         """
     }
     
-    /**
-     List of tokens after reconstruction: all the tokens starting with '##' are put together to the previous one
-     */
-    var bertReconstructedTokens: [String] {
-        var result = [String]()
-        var lastToken = ""
-        
-        for (i, token) in self.rawTokens.enumerated() {
-            if i > 0 && token.starts(with: BertConfig.subtokenIdentifier) {
-                
-                lastToken += token.removeLeading(BertConfig.subtokenIdentifier)
-            }
-            else {
-                if lastToken.isNotEmpty {
-                    result.append(lastToken)
-                }
-                lastToken = token
-            }
-        }
-        
-        result.append(lastToken)
-        return result
+    init(type: PaymentsEntityType, reconstructedEntity: String, entityProbability: Float32,
+         reconstructedTokens: [String], rawTokens: [String], tokensLabels: [Int], tokensLabelsProbabilities: [Float32]) {
+        self.type = type
+        self.reconstructedEntity = reconstructedEntity
+        self.entityProbability = entityProbability
+        self.reconstructedTokens = reconstructedTokens
+        self.rawTokens = rawTokens
+        self.tokensLabels = tokensLabels
+        self.tokensLabelsProbabilities = tokensLabelsProbabilities
     }
 }
 
