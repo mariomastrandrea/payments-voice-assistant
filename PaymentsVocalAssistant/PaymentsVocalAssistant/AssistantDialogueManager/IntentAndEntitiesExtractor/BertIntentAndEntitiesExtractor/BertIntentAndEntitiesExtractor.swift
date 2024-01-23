@@ -14,14 +14,29 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
     typealias Classifier = BertTextClassifier
     typealias CustomError = BertExtractorError
     
+    // singleton
+    private static var _instance: BertIntentAndEntitiesExtractor?
+    static var instance: BertIntentAndEntitiesExtractor? {
+        if _instance != nil { return _instance }
+        
+        guard let classifier = BertTextClassifier.instance else { return nil }
+        _instance = BertIntentAndEntitiesExtractor(classifier: classifier)
+        
+        return _instance
+    }
+    
+    // properties
     var intentAndEntitiesClassifier: BertTextClassifier
     
-    init(classifier: BertTextClassifier) {
+    private init(classifier: BertTextClassifier) {
         self.intentAndEntitiesClassifier = classifier
     }
 
+    /**
+     Predict intent and entities, map labels to actual types and extract all their high level information
+     */
     func recognize(from transcript: String) -> BertExtractorResult<IntentAndEntitiesPrediction> {
-        // TODO: implement method (retrieve labels and map them to actual types, extract entities)
+        // perform raw classification
         let classifierPredictionResult = self.intentAndEntitiesClassifier.classify(text: transcript)
         
         guard let (classifierInput, classifierOutput) = classifierPredictionResult.success else {
@@ -39,8 +54,8 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
         // 2. extract entities
         var entities = [PaymentsEntity]()
         
-        // keep just the original number of tokens info
-        let numRelevantTokens = classifierInput.sentenceTokens.count
+        // consider just the original number of tokens info (exclude the padding)
+        let numRelevantTokens = classifierInput.sentenceTokens.count  // (it includes [CLS] and [SEP])
         let entitiesLabels = classifierOutput.entitiesLabels
         let entitiesProbabilities = classifierOutput.entitiesProbabilities
         
@@ -49,34 +64,43 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
             let label = entitiesLabels[i]
             
             // check label range correctness
-            guard let entityType = PaymentsEntityType.of(label) else {
+            guard PaymentsEntity.isValid(label: label) else {
                 return .failure(.entityLabelNotValid(entityLabel: label))
             }
             
             if PaymentsEntity.isBioBegin(label: label) {
+                let entityType = PaymentsEntityType.of(label)!
+
                 // this is the start of a new entity
-                var tokens: [String] = [classifierInput.sentenceTokens[i]]
-                var tokensLabels: [Int] = [label]
-                var labelsProbabilities: [Float32] = [entitiesProbabilities[i]]
+                var entityTokens: [String] = [classifierInput.sentenceTokens[i]]
+                var entityLabels: [Int] = [label]
+                var entityLabelsProbabilities: [Float32] = [entitiesProbabilities[i]]
                     
+                // add any eventual Inside token of the same entity
                 i += 1
                 while PaymentsEntity.isBioInside(label: entitiesLabels[i], withRespectTo: entityType) {
-                    tokens.append(classifierInput.sentenceTokens[i])
-                    tokensLabels.append(entitiesLabels[i])
-                    labelsProbabilities.append(entitiesProbabilities[i])
+                    entityTokens.append(classifierInput.sentenceTokens[i])
+                    entityLabels.append(entitiesLabels[i])
+                    entityLabelsProbabilities.append(entitiesProbabilities[i])
                     i += 1
                 }
                 i -= 1
                 
-                // extracted entity
-                let extractedEntity = PaymentsEntity(
-                    type: entityType,
-                    tokens: tokens,
-                    tokensLabels: tokensLabels,
-                    tokensLabelsProbabilities: labelsProbabilities
-                )
+                // compute entity global probability and check it is above the threshold, otherwise do not add it
+                let globalEntityProbability = entityLabelsProbabilities.reduce(Float32(1.0), *)
                 
-                entities.append(extractedEntity)
+                if globalEntityProbability >= BertConfig.entityGlobalProbabilityThreshold {
+                    // save extracted entity
+                    let extractedEntity = PaymentsEntity(
+                        type: entityType,
+                        rawTokens: entityTokens,
+                        tokensLabels: entityLabels,
+                        tokensLabelsProbabilities: entityLabelsProbabilities,
+                        entityProbability: globalEntityProbability
+                    )
+                    
+                    entities.append(extractedEntity)
+                }
             }
             
             i += 1
@@ -84,8 +108,6 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
         
         return .success(
             IntentAndEntitiesPrediction(
-                sentence: transcript,
-                sentenceTokens: classifierInput.sentenceTokens,
                 predictedIntent: intent,
                 predictedEntities: entities
             )

@@ -173,6 +173,14 @@ extension String {
     var isNotEmpty: Bool {
         return !self.isEmpty
     }
+    
+    /**
+     Returns a new `String` without the specified initial part (if any)
+     */
+    func removeLeading(_ substring: String) -> String {
+        guard self.starts(with: substring) else { return self }
+        return self.replacingCharacters(in: self.range(of: substring)!, with: "")
+    }
 }
 
 

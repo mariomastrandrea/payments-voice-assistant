@@ -10,9 +10,18 @@ import Foundation
 /**
  An object enclosing the type of intent expressed by the user and the corresponding probability
  */
-struct PaymentsIntent {
+struct PaymentsIntent: CustomStringConvertible {
     let type: PaymentsIntentType
     let probability: Float32
+    
+    var description: String {
+        return """
+        {
+            intent_type: \(self.type),
+            probability: \(self.probability)
+        }
+        """
+    }
     
     init(type: PaymentsIntentType, probability: Float32) {
         self.type = type
@@ -34,7 +43,7 @@ struct PaymentsIntent {
 /**
  An enum indicating the type of intent expressed by the user
  */
-enum PaymentsIntentType: String, CaseIterable {
+enum PaymentsIntentType: String, CaseIterable, CustomStringConvertible {
     case none              = "none"                 // 0
     case checkBalance      = "check_balance"        // 1
     case checkTransactions = "check_transactions"   // 2
@@ -48,6 +57,10 @@ enum PaymentsIntentType: String, CaseIterable {
     }
     
     var labelName: String {
+        return self.rawValue
+    }
+    
+    var description: String {
         return self.rawValue
     }
 }

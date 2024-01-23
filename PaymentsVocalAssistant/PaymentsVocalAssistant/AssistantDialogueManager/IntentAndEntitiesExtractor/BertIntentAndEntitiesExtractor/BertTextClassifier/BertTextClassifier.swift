@@ -12,11 +12,25 @@ class BertTextClassifier: IntentAndEntitiesClassifier {
     typealias Model = BertTFLiteIntentAndEntitiesClassifier
     typealias Labeler = IntentEntityLabeler
 
+    // singleton
+    private static var _instance: BertTextClassifier?
+    static var instance: BertTextClassifier? {
+        if _instance != nil { return _instance }
+        
+        guard let preprocessor = BertPreprocessor.instance else { return nil }
+        guard let model = BertTFLiteIntentAndEntitiesClassifier.instance else { return nil }
+        let labeler = IntentEntityLabeler.instance
+        
+        _instance = BertTextClassifier(preprocessor: preprocessor, model: model, labeler: labeler)
+        return _instance
+    }
+    
+    // properties
     var preprocessor: BertPreprocessor
     var model: BertTFLiteIntentAndEntitiesClassifier
     var labeler: IntentEntityLabeler
     
-    init(
+    private init(
         preprocessor: BertPreprocessor,
         model: BertTFLiteIntentAndEntitiesClassifier,
         labeler: IntentEntityLabeler
@@ -28,6 +42,8 @@ class BertTextClassifier: IntentAndEntitiesClassifier {
     
     func classify(text: String) -> BertExtractorResult<(input: BertInput, output: IntentAndEntitiesRawLabels)> {
         let t0 = Date()
+        
+        log("")
         
         // 1. preprocess the input text to make it suitable for the BERT model
         let preprocessingResult = logElapsedTimeInMs(of: "preprocessing") {
@@ -51,6 +67,8 @@ class BertTextClassifier: IntentAndEntitiesClassifier {
         let labellingResult = logElapsedTimeInMs(of: "entire classification", since: t0) {
             self.labeler.predictLabels(from: modelOutputProbabilities)
         }
+        
+        log("")
         
         guard let modelPrediction = labellingResult.success else {
             return labellingResult.failureResult()

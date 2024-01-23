@@ -12,6 +12,15 @@ class IntentEntityLabeler: ModelLabeler {
     typealias PredictedLabels = IntentAndEntitiesRawLabels
     typealias LabelerError = BertExtractorError
     
+    // singleton
+    private static var _instance: IntentEntityLabeler?
+    static var instance: IntentEntityLabeler {
+        if _instance != nil { return _instance! }
+        
+        _instance = IntentEntityLabeler()
+        return _instance!
+    }
+    
     /**
      Predict intent labels and entity labels based on the probabilities predicted by the BERT classifier and on the thresholds defined in the config
      - parameter probabilities: an object enclosing the intent probabilities and the entities probabilities predicted by the classifier

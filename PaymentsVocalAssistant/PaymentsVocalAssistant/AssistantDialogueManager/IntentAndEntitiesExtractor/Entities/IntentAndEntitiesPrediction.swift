@@ -12,10 +12,6 @@ import Foundation
  the entities (from the Named Entity Recognition task)
  */
 struct IntentAndEntitiesPrediction {
-    // input
-    let sentence: String
-    let sentenceTokens: [String]
-    
     // prediction
     let predictedIntent: PaymentsIntent
     let predictedEntities: [PaymentsEntity]

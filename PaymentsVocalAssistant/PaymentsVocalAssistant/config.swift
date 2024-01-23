@@ -8,7 +8,7 @@
 import Foundation
 
 enum GlobalConfig {
-    static let enableLogs = true
+    static var enableLogs = true
 }
 
 enum VocalAssistantConfig {

@@ -7,30 +7,37 @@
 
 import Foundation
 
-struct PaymentsEntity {
+struct PaymentsEntity: CustomStringConvertible {
     let type: PaymentsEntityType
-    let tokens: [String]
+    let rawTokens: [String]
     let tokensLabels: [Int]
     let tokensLabelsProbabilities: [Float32]
+    let entityProbability: Float32
     
-    var startToken: String {
-        return self.tokens[0]
-    }
-    
-    var endToken: String {
-        return self.tokens[self.tokens.count-1]
+    var description: String {
+        return """
+        {
+            entity_type: \(self.type),
+            reconstructed_tokens: \(self.bertReconstructedTokens),
+            raw_tokens: \(self.rawTokens),
+            tokensLabels: \(self.tokensLabels.map{ Self.bioLabels[$0] }),
+            tokensLabelsProbabilities: \(self.tokensLabelsProbabilities),
+            entityProbability: \(self.entityProbability)
+        }
+        """
     }
     
     /**
      List of tokens after reconstruction: all the tokens starting with '##' are put together to the previous one
      */
-    var reconstructedTokens: [String] {
+    var bertReconstructedTokens: [String] {
         var result = [String]()
         var lastToken = ""
         
-        for (i, token) in self.tokens.enumerated() {
-            if i > 0 && token.starts(with: "##") {
-                lastToken += token
+        for (i, token) in self.rawTokens.enumerated() {
+            if i > 0 && token.starts(with: BertConfig.subtokenIdentifier) {
+                
+                lastToken += token.removeLeading(BertConfig.subtokenIdentifier)
             }
             else {
                 if lastToken.isNotEmpty {
@@ -42,13 +49,6 @@ struct PaymentsEntity {
         
         result.append(lastToken)
         return result
-    }
-    
-    init(type: PaymentsEntityType, tokens: [String], tokensLabels: [Int], tokensLabelsProbabilities: [Float32]) {
-        self.type = type
-        self.tokens = tokens
-        self.tokensLabels = tokensLabels
-        self.tokensLabelsProbabilities = tokensLabelsProbabilities
     }
 }
 
@@ -77,9 +77,13 @@ extension PaymentsEntity {
                 beginLabel > 0 && beginLabel < Self.bioLabels.count &&
                 label == beginLabel + 1
     }
+    
+    static func isValid(label: Int) -> Bool {
+        return label >= 0 && label < Self.numEntitiesLabels
+    }
 }
 
-enum PaymentsEntityType: String, CaseIterable {
+enum PaymentsEntityType: String, CaseIterable, CustomStringConvertible {
     case amount
     case bank
     case currency
@@ -93,6 +97,10 @@ enum PaymentsEntityType: String, CaseIterable {
         return (Self.allCases.firstIndex(of: self)! * 2) + 1
     }
     
+    var description: String {
+        return self.labelName
+    }
+    
     static func of(_ label: Int) -> Self? {
         let num = (label-1) / 2
         
@@ -100,6 +108,6 @@ enum PaymentsEntityType: String, CaseIterable {
             return nil
         }
         
-        return Self.allCases[label]
+        return Self.allCases[num]
     }
 }
