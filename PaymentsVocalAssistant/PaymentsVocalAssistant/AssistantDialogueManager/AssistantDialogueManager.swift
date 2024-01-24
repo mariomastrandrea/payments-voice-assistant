@@ -11,15 +11,20 @@ import Foundation
  Object performing Intent classification and Dialogue State Tracking (DST) over the user speech's transcript
  */
 public class AssistantDialogueManager {
-    let intentAndEntitiesExtractor: any IntentAndEntitiesExtractor
+    // Machine Learning model extracting intent and entities from user transcripts
+    private let intentAndEntitiesExtractor: any IntentAndEntitiesExtractor
     
-    // TODO: define user contact and user bank account types
-    private let userContacts: [Any]
-    private let userBankAccounts: [Any]
+    // app context
+    private let userContacts: [VocalAssistantUser]
+    private let userBankAccounts: [VocalAssistantBankAccount]
     
     // TODO: add conversation state
     
-    init(intentAndEntitiesExtractor: any IntentAndEntitiesExtractor, userContacts: [Any], userBankAccounts: [Any]) {
+    internal init(
+        intentAndEntitiesExtractor: any IntentAndEntitiesExtractor,
+        userContacts: [VocalAssistantUser], 
+        userBankAccounts: [VocalAssistantBankAccount]
+    ) {
         self.intentAndEntitiesExtractor = intentAndEntitiesExtractor
         self.userContacts = userContacts
         self.userBankAccounts = userBankAccounts

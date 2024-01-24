@@ -14,6 +14,11 @@ public enum AssistantModelType {
 public class PaymentsVocalAssistant {
     private let intentAndEntitiesExtractor: any IntentAndEntitiesExtractor
     
+    /**
+     Initialize the Vocal Assistant specifying the requested type
+     
+     Call this method just once, at app initialization time
+     */
     init?(type: AssistantModelType = .bert) {
         // initialize a Intent and Entities Extractor
         switch type {
@@ -59,11 +64,17 @@ public class PaymentsVocalAssistant {
     }
     
     /**
-     Create a new conversation and get the corresponding dialogue manager
+     Create a new conversation and get the corresponding dialogue manager, providing the user's app context
+     - parameter userContacts: list of the contacts which might be referred by the user in the conversation
+     - parameter userBankAccounts: list of the bank accounts the user can use to perform in-app operations
+     
+     Call this method each time the user is starting a new conversation
      */
-    public func newConversation(userContacts: [Any] = [], userBankAccounts: [Any] = []) -> AssistantDialogueManager {
-        // TODO: use proper high level app info: user contacts and user bank accounts
-
+    public func newConversation(
+        userContacts: [VocalAssistantUser] = [],
+        userBankAccounts: [VocalAssistantBankAccount] = []
+    ) -> AssistantDialogueManager {
+        
         return AssistantDialogueManager(
             intentAndEntitiesExtractor: self.intentAndEntitiesExtractor,
             userContacts: userContacts,
