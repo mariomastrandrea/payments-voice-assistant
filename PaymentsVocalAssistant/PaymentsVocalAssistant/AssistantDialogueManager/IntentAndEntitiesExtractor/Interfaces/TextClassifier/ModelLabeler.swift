@@ -10,7 +10,7 @@ import Foundation
 /**
  A generic object which assigns labels given a Machine Learning model's raw prediction
  */
-protocol ModelLabeler<LabelerError> {
+protocol ModelLabeler {
     associatedtype ModelOutput
     associatedtype PredictedLabels
     associatedtype LabelerError: Error

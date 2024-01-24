@@ -11,7 +11,7 @@ struct PaymentsEntity: CustomStringConvertible {
     let type: PaymentsEntityType
     let reconstructedEntity: String
     let entityProbability: Float32
-    let reconstructedTokens: [String]
+    private let reconstructedTokens: [String]
     private let rawTokens: [String]
     private let tokensLabels: [Int]
     private let tokensLabelsProbabilities: [Float32]
@@ -53,7 +53,9 @@ extension PaymentsEntity {
         return PaymentsEntityType.allCases.count*2 + 1
     }
     
-    static var defaultLabel = 0
+    static var defaultLabel: Int {
+        return PaymentsEntityType.defaultLabel
+    }
     
     static func isBioBegin(label: Int) -> Bool {
         return label > 0 && label < Self.bioLabels.count &&
@@ -83,8 +85,14 @@ enum PaymentsEntityType: String, CaseIterable, CustomStringConvertible {
         return self.rawValue.uppercased()
     }
     
+    static var defaultLabel = 0
+    
     var beginLabel: Int {
         return (Self.allCases.firstIndex(of: self)! * 2) + 1
+    }
+    
+    var insideLabel: Int {
+        return self.beginLabel + 1
     }
     
     var description: String {

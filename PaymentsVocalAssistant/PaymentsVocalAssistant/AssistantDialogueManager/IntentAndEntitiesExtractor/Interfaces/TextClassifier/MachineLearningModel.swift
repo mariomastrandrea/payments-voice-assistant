@@ -10,7 +10,7 @@ import Foundation
 /**
  A generic machine learning model, having a specific input and a specific output formats
  */
-protocol MachineLearningModel<ModelError> {
+protocol MachineLearningModel {
     associatedtype RawInput
     associatedtype RawOutput
     associatedtype ModelError: Error

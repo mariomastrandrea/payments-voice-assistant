@@ -24,20 +24,25 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
     /**
      Predict intent and entities, map labels to actual types and extract all their high level information
      */
-    func recognize(from transcript: String) -> BertExtractorResult<IntentAndEntitiesPrediction> {
+    func recognize(from transcript: String) -> AssistantDialogueManagerResult<IntentAndEntitiesPrediction> {
         // perform raw classification
         let classifierPredictionResult = self.intentAndEntitiesClassifier.classify(text: transcript)
         
         guard let (classifierInput, classifierOutput) = classifierPredictionResult.success else {
-            return classifierPredictionResult.failureResult()
+            return classifierPredictionResult.failureResult().toAssistantDialogueManagerResult()
         }
         
         // 1. extract intent
         guard let intent = PaymentsIntent(
             label: classifierOutput.intentLabel,
             probability: classifierOutput.intentProbability
-        ) else {
-            return .failure(BertExtractorError.intentLabelNotValid(intentLabel: classifierOutput.intentLabel))
+        ) 
+        else {
+            return .failure(
+                .extractorError(
+                    error: BertExtractorError.intentLabelNotValid(intentLabel: classifierOutput.intentLabel)
+                )
+            )
         }
         
         // 2. extract entities
@@ -54,7 +59,11 @@ class BertIntentAndEntitiesExtractor: IntentAndEntitiesExtractor {
             
             // check label range correctness
             guard PaymentsEntity.isValid(label: label) else {
-                return .failure(BertExtractorError.entityLabelNotValid(entityLabel: label))
+                return .failure(
+                    .extractorError(
+                        error: BertExtractorError.entityLabelNotValid(entityLabel: label)
+                    )
+                )
             }
             
             if PaymentsEntity.isBioBegin(label: label) {

@@ -10,8 +10,6 @@ import XCTest
 
 final class BertTFLiteModelTests: XCTestCase {
     var originalLogFlagValue: Bool!
-    let text1 = "I need the transaction history involving Ylenia Leone"
-    let text2 = "I am instructing a collection of $412.90 from sister-in-law Marta through my CaixaBank"
     var vocalAssistant: PaymentsVocalAssistant!
     
     override func setUpWithError() throws {
@@ -29,27 +27,44 @@ final class BertTFLiteModelTests: XCTestCase {
         GlobalConfig.enableLogs = self.originalLogFlagValue
     }
 
-    func testExtractedIntentAndEntities() throws {
-        let text = "I want to send 47 cents to Andrea Cic"
+    func testBertTFLiteModel() throws {
+        let text = ExampleText.cic.text
         let dialogueManager = self.vocalAssistant.newConversation()
-
-        let intentAndEntitiesExtractor = dialogueManager.intentAndEntitiesExtractor
-        let recognitionOutput = intentAndEntitiesExtractor.recognize(from: text)
-        XCTAssert(recognitionOutput.isSuccess)
+        let textClassifier = dialogueManager.intentAndEntitiesExtractor.intentAndEntitiesClassifier as! BertTextClassifier
         
-        let prediction = recognitionOutput.success!
+        let classifierResult = textClassifier.classify(text: text)
+        XCTAssert(classifierResult.isSuccess)
         
-        print("\"\(text)\"\n")
-        print(prediction.predictedIntent)
-        print()
+        let (classifierInput, classifierOutput) = classifierResult.success!
         
-        for entity in prediction.predictedEntities {
-            print(entity)
-        }
+        let expectedIntentLabel = PaymentsIntentType.sendMoney.label
+        XCTAssertEqual(classifierOutput.intentLabel, expectedIntentLabel)
+        
+        var expectedEntityLabels: [Int] = [
+            PaymentsEntityType.defaultLabel,
+            PaymentsEntityType.defaultLabel,
+            PaymentsEntityType.defaultLabel,
+            PaymentsEntityType.defaultLabel,
+            PaymentsEntityType.defaultLabel,
+            PaymentsEntityType.amount.beginLabel,
+            PaymentsEntityType.amount.insideLabel,
+            PaymentsEntityType.defaultLabel,
+            PaymentsEntityType.user.beginLabel,
+            PaymentsEntityType.user.insideLabel,
+            PaymentsEntityType.user.insideLabel,
+            PaymentsEntityType.defaultLabel,
+        ]
+        
+        expectedEntityLabels += Array(
+            repeating: PaymentsEntityType.defaultLabel,
+            count: BertConfig.sequenceLength - expectedEntityLabels.count
+        )
+        
+        XCTAssertEqual(classifierOutput.entitiesLabels, expectedEntityLabels)
     }
     
     func testTFLitePerformance() throws {
-        let text = "Please arrange a payment of AED419 and 14 cents to Rodolfo"
+        let text = ExampleText._3.text
         let dialogueManager = self.vocalAssistant.newConversation()
         let textClassifier = dialogueManager.intentAndEntitiesExtractor.intentAndEntitiesClassifier as! BertTextClassifier
         
