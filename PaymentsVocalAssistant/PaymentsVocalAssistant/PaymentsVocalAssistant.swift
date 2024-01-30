@@ -12,21 +12,73 @@ public enum AssistantModelType {
 }
 
 public class PaymentsVocalAssistant {
+    // singleton instance
+    private static var _instance: PaymentsVocalAssistant? = nil
+    private static let type: AssistantModelType = .bert
+    
+    // app context
+    private var userContacts: [VocalAssistantContact]
+    private var userBankAccounts: [VocalAssistantBankAccount]
+    
     private let intentAndEntitiesExtractor: any IntentAndEntitiesExtractor
+    private let speechRecognizer: SpeechRecognizer
+    private let speechSynthesizer: Any?  // TODO: substitute to actual type
+    
     
     /**
      Initialize the Vocal Assistant specifying the requested type
      
      Call this method just once, at app initialization time
      */
-    init?(type: AssistantModelType = .bert) {
+    private init?(
+        userContacts: [VocalAssistantContact],
+        userBankAccounts: [VocalAssistantBankAccount]
+    ) async {
         // initialize a Intent and Entities Extractor
-        switch type {
+        switch PaymentsVocalAssistant.type {
             case .bert:
                 guard let intentAndEntitiesExtractor =
                         PaymentsVocalAssistant.createBertIntentAndEntitiesExtractor() else { return nil }
                 self.intentAndEntitiesExtractor = intentAndEntitiesExtractor
             }
+        
+        // TODO: initialize speech recognizer, eventually with a Custom Language model
+        self.speechRecognizer = SpeechRecognizer()
+        await self.speechRecognizer.createCustomLM(
+            names: userContacts.compactMap { $0.firstName.isEmpty ? nil : $0.firstName },
+            surnames: userContacts.compactMap { $0.lastName.isEmpty ? nil : $0.lastName },
+            banks: userBankAccounts.map { $0.name }
+        )
+        
+        // TODO: initialize speech synthesizer
+        self.speechSynthesizer = nil
+        
+        // save app context
+        self.userContacts = userContacts
+        self.userBankAccounts = userBankAccounts
+    }
+    
+    /** Return the singleton instance of the Vocal Assistant.
+     
+        If this is the first time the method is called, it instantiates and initializes the
+        Vocal Assistant with its subcomponents, so this call might take a long time */
+    public static func instance(
+        userContacts: [VocalAssistantContact] = [],
+        userBankAccounts: [VocalAssistantBankAccount] = []
+    ) async -> PaymentsVocalAssistant? {
+        if _instance == nil {
+            _instance = await PaymentsVocalAssistant(
+                userContacts: userContacts,
+                userBankAccounts: userBankAccounts
+            )
+        }
+        else {
+            // just update the app context
+            _instance?.userContacts = userContacts
+            _instance?.userBankAccounts = userBankAccounts
+        }
+        
+        return _instance
     }
     
     /**
@@ -70,15 +122,22 @@ public class PaymentsVocalAssistant {
      
      Call this method each time the user is starting a new conversation
      */
-    public func newConversation(
-        userContacts: [VocalAssistantUser] = [],
-        userBankAccounts: [VocalAssistantBankAccount] = []
-    ) -> AssistantDialogueManager {
+    public func newConversation() -> ConversationManager {
+        // TODO: substitute with actual instances, already initialized
+        let speechRecognizer: Any? = nil
+        let speechSyntesizer: Any? = nil
         
-        return AssistantDialogueManager(
+        // create new DST to manage a new conversation
+        let dst = VocalAssistantDST(
             intentAndEntitiesExtractor: self.intentAndEntitiesExtractor,
-            userContacts: userContacts,
-            userBankAccounts: userBankAccounts
+            userContacts: self.userContacts,
+            userBankAccounts: self.userBankAccounts
+        )
+        
+        return ConversationManager(
+            speechRecognizer: speechRecognizer,
+            dst: dst,
+            speechSyntesizer: speechSyntesizer
         )
     }
 }

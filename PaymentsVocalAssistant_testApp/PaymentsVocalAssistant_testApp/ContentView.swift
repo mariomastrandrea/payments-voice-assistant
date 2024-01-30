@@ -8,17 +8,30 @@
 import SwiftUI
 import PaymentsVocalAssistant
 
-struct ContentView: View {
-    let a = BertTextClassifier(a: "", b: "")
-    
+struct ContentView: View {    
+    // State to control the button's enabled/disabled state
+    @State private var isButtonDisabled = false
+
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.blue)
-            Text("Hello, world!")
+            Button("Click Me") {
+                print("Button was tapped")
+            }
+            .disabled(isButtonDisabled) // Use the state to enable/disable the button
+            .padding()
+            .background(isButtonDisabled ? Color.gray : Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(8)
+
+            // Toggle button to enable/disable the "Click Me" button
+            Button("Toggle Button State") {
+                isButtonDisabled.toggle() // Toggle the state to enable/disable the button
+            }
+            .padding()
+            .background(Color.red)
+            .foregroundColor(.white)
+            .cornerRadius(8)
         }
-        .padding()
     }
 }
 

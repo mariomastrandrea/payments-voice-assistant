@@ -18,7 +18,7 @@ final class IntentAndEntitiesExtractorTests: XCTestCase {
         self.originalLogFlagValue = GlobalConfig.enableLogs
         GlobalConfig.enableLogs = false
         
-        let vocalAssistant = PaymentsVocalAssistant(type: .bert)
+        let vocalAssistant = PaymentsVocalAssistant.instance
         XCTAssertNotNil(vocalAssistant, "Failed to initialize PaymentsVocalAssistant")
         self.vocalAssistant = vocalAssistant!
     }

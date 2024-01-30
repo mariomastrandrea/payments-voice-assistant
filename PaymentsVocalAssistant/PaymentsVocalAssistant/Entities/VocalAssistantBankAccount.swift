@@ -12,14 +12,22 @@ import Foundation
     It is characterized by a `name` property which will be used by the vocal assistant to identify the requested user in the speeches */
 public struct VocalAssistantBankAccount {
     /** Unique id of the bank account in the app context */
-    let id: String
+    public let id: String
     
     /** Name of the bank which will be matched by the vocal assistant */
-    let name: String
+    public let name: String
     
     /** Flag indicating if this is the default (primary) account for the user */
-    let `default`: Bool
+    public let `default`: Bool
     
     /** The specific currency for the bank account */
-    let currency: VocalAssistantCurrency
+    public let currency: VocalAssistantCurrency
+    
+    public init(id: String, name: String, default: Bool, currency: VocalAssistantCurrency) {
+        self.id = id
+        self.name = name
+        self.default = `default`
+        self.currency = currency
+    }
 }
+

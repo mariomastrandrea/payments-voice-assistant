@@ -10,11 +10,17 @@ import Foundation
 /** Object representing a Currency for the `PaymentsVocalAssistant` */
 public struct VocalAssistantCurrency {
     /** Unique id representing the currency */
-    let id: String
+    public let id: String
     
     /** List of possible symbols representing the currency */
-    let symbols: [String]
+    public let symbols: [String]
     
     /** List of possible names representing the same currency */
-    let literals: [String]
+    public let literals: [String]
+    
+    public init(id: String, symbols: [String], literals: [String]) {
+        self.id = id
+        self.symbols = symbols
+        self.literals = literals
+    }
 }

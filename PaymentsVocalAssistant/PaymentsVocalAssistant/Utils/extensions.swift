@@ -48,6 +48,12 @@ extension Result {
     }
 }
 
+extension Array {
+    var isNotEmpty: Bool {
+        return !self.isEmpty
+    }
+}
+
 extension Array where Element: Comparable {
     func argMax() -> Int? {
         if self.count == 0 { return nil }

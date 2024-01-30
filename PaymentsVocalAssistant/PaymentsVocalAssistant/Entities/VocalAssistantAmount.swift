@@ -10,8 +10,13 @@ import Foundation
 /** Object representing an amount for the `PaymentsVocalAssistant`, made of a currency and a value */
 public struct VocalAssistantAmount {
     /** The numercal value of the amount */
-    let value: Double
+    public let value: Double
     
     /** The currency of the amount */
-    let currency: VocalAssistantCurrency
+    public let currency: VocalAssistantCurrency
+    
+    public init(value: Double, currency: VocalAssistantCurrency) {
+        self.value = value
+        self.currency = currency
+    }
 }
