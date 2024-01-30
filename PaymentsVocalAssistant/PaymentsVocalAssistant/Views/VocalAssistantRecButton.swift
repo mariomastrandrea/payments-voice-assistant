@@ -8,22 +8,30 @@
 import SwiftUI
 
 struct VocalAssistantRecButton: View {
+    @GestureState private var isLongPressed = false
+
+    private let disabled: Bool
     private let imageName: String
     private let text: String
     private let textColor: Color
     private let fillColor: Color
-    private let disabled: Bool
-    private let action: () -> Void
+    private let longPressStartAction: () -> Void
+    private let longPressEndAction: () -> Void
     
     private let hapticFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
     
-    init(disabled: Bool, imageName: String, text: String, textColor: Color, fillColor: Color, action: @escaping () -> Void) {
+    private var longPressMinimumDurationInSec: Double {
+        return Double(SpeechConfig.defaultStartDelayMs) / 1000.0
+    }
+    
+    init(disabled: Bool, imageName: String, text: String, textColor: Color, fillColor: Color, longPressStartAction: @escaping () -> Void, longPressEndAction: @escaping () -> Void) {
         self.disabled = disabled
         self.imageName = imageName
         self.text = text
         self.textColor = textColor
         self.fillColor = fillColor
-        self.action = action
+        self.longPressStartAction = longPressStartAction
+        self.longPressEndAction = longPressEndAction
     }
     
     struct VocalAssistantRecButtonStyle: ButtonStyle {
@@ -35,9 +43,7 @@ struct VocalAssistantRecButton: View {
     
     var body: some View {
         // button to record user's speech
-        Button(action: {
-            self.action()
-        }) {
+        Button(action: {}) {
             HStack {
                 Image(systemName: self.imageName)
                     .resizable()
@@ -50,12 +56,27 @@ struct VocalAssistantRecButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(self.fillColor.opacity(self.disabled ? 0.6 : 1.0))
+            .background(self.fillColor.opacity(self.disabled ? 0.6 : self.isLongPressed ? 0.7 : 1.0))
             .cornerRadius(10)
             .padding()
         }
-        .disabled(self.disabled)
-        .buttonStyle(VocalAssistantRecButtonStyle())
+        .highPriorityGesture(
+            LongPressGesture(minimumDuration: 0.5)
+                .updating($isLongPressed) { currentState, gestureState, transaction in
+                    gestureState = currentState
+                }
+                .onChanged { _ in
+                    // This will trigger as soon as the long press gesture starts
+                    print("Long press changed")
+                }
+                .onEnded { _ in
+                    // This will trigger when the long press ends
+                    
+                    // Action to perform when the button is released
+                    print("Long Press Ended")
+                }
+        )
+        
     }
 }
 
@@ -66,6 +87,7 @@ struct VocalAssistantRecButton: View {
         text: "Hold to speak",
         textColor: Color.white,
         fillColor: Color.blue,
-        action: {}
+        longPressStartAction: {},
+        longPressEndAction: {}
     )
 }

@@ -22,7 +22,7 @@ public class PaymentsVocalAssistant {
     
     private let intentAndEntitiesExtractor: any IntentAndEntitiesExtractor
     private let speechRecognizer: SpeechRecognizer
-    private let speechSynthesizer: Any?  // TODO: substitute to actual type
+    private let speechSynthesizer: SpeechSynthesizer
     
     
     /**
@@ -42,16 +42,18 @@ public class PaymentsVocalAssistant {
                 self.intentAndEntitiesExtractor = intentAndEntitiesExtractor
             }
         
-        // TODO: initialize speech recognizer, eventually with a Custom Language model
-        self.speechRecognizer = SpeechRecognizer()
+        // initialize speech recognizer, eventually with a Custom Language model (iOS >=17)
+        guard let speechRecognizer = await SpeechRecognizer() else { return nil }
+        self.speechRecognizer = speechRecognizer
+        
         await self.speechRecognizer.createCustomLM(
             names: userContacts.compactMap { $0.firstName.isEmpty ? nil : $0.firstName },
             surnames: userContacts.compactMap { $0.lastName.isEmpty ? nil : $0.lastName },
             banks: userBankAccounts.map { $0.name }
         )
         
-        // TODO: initialize speech synthesizer
-        self.speechSynthesizer = nil
+        // initialize speech synthesizer
+        self.speechSynthesizer = SpeechSynthesizer()
         
         // save app context
         self.userContacts = userContacts
@@ -122,12 +124,8 @@ public class PaymentsVocalAssistant {
      
      Call this method each time the user is starting a new conversation
      */
-    public func newConversation() -> ConversationManager {
-        // TODO: substitute with actual instances, already initialized
-        let speechRecognizer: Any? = nil
-        let speechSyntesizer: Any? = nil
-        
-        // create new DST to manage a new conversation
+    public func newConversation(defaultErrorMessage: String) -> ConversationManager {
+        // create a new DST dependency to manage the new conversation
         let dst = VocalAssistantDST(
             intentAndEntitiesExtractor: self.intentAndEntitiesExtractor,
             userContacts: self.userContacts,
@@ -135,9 +133,10 @@ public class PaymentsVocalAssistant {
         )
         
         return ConversationManager(
-            speechRecognizer: speechRecognizer,
+            speechRecognizer: self.speechRecognizer,
             dst: dst,
-            speechSyntesizer: speechSyntesizer
+            speechSyntesizer: self.speechSynthesizer,
+            defaultErrorMessage: defaultErrorMessage
         )
     }
 }

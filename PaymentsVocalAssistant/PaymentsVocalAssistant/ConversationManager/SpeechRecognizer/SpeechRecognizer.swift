@@ -44,12 +44,12 @@ class SpeechRecognizer {
      Initializes a new speech recognizer. If this is the first time you've used the class, it
      requests access to the speech recognizer and the microphone.
      */
-    init() {
+    init?() async {
         self.recognizer = SFSpeechRecognizer(locale: Locale(identifier: SpeechConfig.defaultLocaleId))
         
         guard let recognizer = recognizer else {
             transcribe(SpeechRecognizerError.nilRecognizer)
-            return
+            return nil
         }
         
         // (from iOS 13 on Device Speech Recognition should be supported by any device)
@@ -62,18 +62,18 @@ class SpeechRecognizer {
         }
         
         // check user's permissions for recording and for speech recognizer (STT)
-        Task {
-            do {
-                guard await SFSpeechRecognizer.hasAuthorizationToRecognize() else {
-                    throw SpeechRecognizerError.notAuthorizedToRecognize
-                }
-                guard await AVAudioSession.sharedInstance().hasPermissionToRecord() else {
-                    throw SpeechRecognizerError.notPermittedToRecord
-                }
-            } 
-            catch {
-                transcribe(error)
+        
+        do {
+            guard await SFSpeechRecognizer.hasAuthorizationToRecognize() else {
+                throw SpeechRecognizerError.notAuthorizedToRecognize
             }
+            guard await AVAudioSession.sharedInstance().hasPermissionToRecord() else {
+                throw SpeechRecognizerError.notPermittedToRecord
+            }
+        }
+        catch {
+            transcribe(error)
+            return nil
         }
     }
     
@@ -144,6 +144,9 @@ class SpeechRecognizer {
             catch let error {
                 logError("An error occurred preparing custom data model: \(error.localizedDescription)")
             }
+        }
+        else {
+            logInfo("** Custom Language model not available on this device **")
         }
     }
     

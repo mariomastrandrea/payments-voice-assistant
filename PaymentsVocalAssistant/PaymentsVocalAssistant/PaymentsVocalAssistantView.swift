@@ -19,10 +19,6 @@ public struct PaymentsVocalAssistantView: View {
     private let userContacts: [VocalAssistantContact]
     private let userBankAccounts: [VocalAssistantBankAccount]
     
-    private var isEntirePaymentsVocalAssistantInitialized: Bool {
-        // TODO: add also speech recognizer init and TTS init flags
-        return self.isAssistantInitialized
-    }
 
     public init(
         userContacts: [VocalAssistantContact],
@@ -35,7 +31,6 @@ public struct PaymentsVocalAssistantView: View {
         self.config = config
         self.assistantAnswer = "Hi this is a custom text example to test the functionality of the typewriter text component, cause I guess it does not work properly. Just kidding"
         
-        // TODO: set to true only after vocal assistant successful initialization
         self.isAssistantInitialized = false
     }
     
@@ -63,14 +58,18 @@ public struct PaymentsVocalAssistantView: View {
             
             // button to record user's speech
             VocalAssistantRecButton(
-                disabled: !self.isEntirePaymentsVocalAssistantInitialized,
+                disabled: !self.isAssistantInitialized,
                 imageName: self.config.recButtonImageName,
                 text: self.config.recButtonText,
                 textColor: self.config.recButtonForegroundColor,
-                fillColor: self.config.recButtonFillColor
-            ) {
-                self.captureSpeech()
-            }
+                fillColor: self.config.recButtonFillColor,
+                longPressStartAction: {
+                    // self.conversationManager.startListening()
+                },
+                longPressEndAction: {
+                    // self.conversationManager.processAndPlayResponse()
+                }
+            )
         }
         .padding(.bottom, 20)
         .background(self.config.backgroundColor)
@@ -82,19 +81,18 @@ public struct PaymentsVocalAssistantView: View {
             guard let vocalAssistant = await PaymentsVocalAssistant.instance(
                 userContacts: self.userContacts,
                 userBankAccounts: self.userBankAccounts
-            ) else {
+            ) 
+            else {
                 // initialization error occurred
-                Task { @MainActor in
-                    // show error
-                    self.assistantAnswer = self.config.initializationErrorMessage
-                    logError("PaymentsVocalAssistant is nil after getting singleton instance")
-                }
+                self.assistantAnswer = self.config.initializationErrorMessage
+                logError("PaymentsVocalAssistant is nil after getting singleton instance")
+                
                 return
             }
             
             logSuccess("vocal assistant initialized")
             self.isAssistantInitialized = true
-            self.conversationManager = vocalAssistant.newConversation()
+            self.conversationManager = vocalAssistant.newConversation(defaultErrorMessage: self.config.errorResponse)
         }
     }
     

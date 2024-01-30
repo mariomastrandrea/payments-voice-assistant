@@ -84,17 +84,14 @@ class CustomLMBuilder {
                 create: true
             )
             .appendingPathComponent(modelFileName)
-            
-            log(modelUrl.absoluteString)
-            log(self.customLM == nil ? "customLM is nil" : "customLM is not nil")
-            
+                        
             try await self.customLM?.export(to: modelUrl)
             
-            print("* exported model at: \(modelUrl.absoluteString)")
+            logSuccess("* exported model at: \(modelUrl.absoluteString)")
             return modelUrl
         }
         catch let error {
-            print("Error: custom LM export failed.\n\(error.localizedDescription)")
+            logError("Error: custom LM export failed.\n\(error.localizedDescription)")
             return nil
         }
     }
