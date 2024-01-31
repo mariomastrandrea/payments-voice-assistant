@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct VocalAssistantRecButton: View {
-    @GestureState private var isLongPressed = false
+    @State private var isRecPressed = false
 
     private let disabled: Bool
     private let imageName: String
@@ -43,37 +43,72 @@ struct VocalAssistantRecButton: View {
     
     var body: some View {
         // button to record user's speech
-        Button(action: {}) {
-            HStack {
-                Image(systemName: self.imageName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 24)
-                    .foregroundColor(self.textColor)
-                Text(self.text)
-                    .foregroundColor(self.textColor)
-                    .font(.headline)
-            }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(self.fillColor.opacity(self.disabled ? 0.6 : self.isLongPressed ? 0.7 : 1.0))
-            .cornerRadius(10)
-            .padding()
+        HStack {
+            Image(systemName: self.imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 24)
+                .foregroundColor(self.textColor)
+            Text(self.text)
+                .foregroundColor(self.textColor)
+                .font(.headline)
         }
-        .highPriorityGesture(
-            LongPressGesture(minimumDuration: 0.5)
-                .updating($isLongPressed) { currentState, gestureState, transaction in
-                    gestureState = currentState
+        .frame(maxWidth: .infinity)
+        .padding(20)
+        .background(
+            self.fillColor.opacity(
+                self.disabled ? 0.6 : self.isRecPressed ? 0.7 : 1.0
+            )
+        )
+        .cornerRadius(10)
+        .padding()
+        .gesture(
+            LongPressGesture(minimumDuration: longPressMinimumDurationInSec)
+                .onEnded { _ in
+                    // this triggers when the *long* press starts (after min duration)
+                    if !self.disabled {
+                        Task { @MainActor in
+                            longPressStartAction()
+                        }
+                    }
                 }
+                .sequenced(
+                    before: DragGesture(minimumDistance: 0).onEnded { _ in
+                        // this triggers once the long press ended
+                        if !self.disabled {
+                            Task {
+                                do {
+                                    try await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+                                      
+                                    Task { @MainActor in
+                                        longPressEndAction()
+                                    }
+                                } catch {
+                                    // Handle cancellation or other errors
+                                    logError("Task was unexpectedly cancelled or encountered an error")
+                                }
+                            }
+                        }
+                    }
+                )
+        )
+        .simultaneousGesture(
+            // monitor button press state and trigger haptic feedback
+            DragGesture(minimumDistance: 0)
                 .onChanged { _ in
-                    // This will trigger as soon as the long press gesture starts
-                    print("Long press changed")
+                    if !self.disabled {
+                        if !self.isRecPressed {
+                            hapticFeedbackGenerator.impactOccurred()
+                        }
+                        
+                        self.isRecPressed = true
+                    }
                 }
                 .onEnded { _ in
-                    // This will trigger when the long press ends
-                    
-                    // Action to perform when the button is released
-                    print("Long Press Ended")
+                    if !self.disabled {
+                        self.isRecPressed = false
+                        hapticFeedbackGenerator.impactOccurred()
+                    }
                 }
         )
         
@@ -82,7 +117,7 @@ struct VocalAssistantRecButton: View {
 
 #Preview {
     VocalAssistantRecButton(
-        disabled: false,
+        disabled: true,
         imageName: "mic.fill",
         text: "Hold to speak",
         textColor: Color.white,

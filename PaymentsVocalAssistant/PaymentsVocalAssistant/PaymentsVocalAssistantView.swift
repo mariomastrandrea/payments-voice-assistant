@@ -12,8 +12,8 @@ public struct PaymentsVocalAssistantView: View {
 
     // View state
     @State private var conversationManager: ConversationManager!
-    @State private var assistantAnswer: String
-    @State private var isAssistantInitialized: Bool
+    @State private var assistantAnswerText: String
+    @State private var isAssistantInitialized: Bool = false
     
     // app state
     private let userContacts: [VocalAssistantContact]
@@ -29,9 +29,8 @@ public struct PaymentsVocalAssistantView: View {
         self.userBankAccounts = userBankAccounts
         
         self.config = config
-        self.assistantAnswer = "Hi this is a custom text example to test the functionality of the typewriter text component, cause I guess it does not work properly. Just kidding"
-        
         self.isAssistantInitialized = false
+        self.assistantAnswerText = ""
     }
     
     public var body: some View {
@@ -40,7 +39,9 @@ public struct PaymentsVocalAssistantView: View {
                 self.config.title,
                 color: self.config.titleTextColor
             ).onAppear {
-                self.initializeVocalAssistant()
+                if !self.isAssistantInitialized {
+                    self.initializeVocalAssistant()
+                }
             }
             
             if !self.isAssistantInitialized {
@@ -48,7 +49,7 @@ public struct PaymentsVocalAssistantView: View {
             }
             else {
                 VocalAssistantAnswerBox(
-                    assistantAnswer: self.assistantAnswer,
+                    assistantAnswer: self.assistantAnswerText,
                     textColor: self.config.assistantAnswerBoxTextColor,
                     boxBackground: self.config.assistantAnswerBoxBackground
                 )
@@ -64,10 +65,12 @@ public struct PaymentsVocalAssistantView: View {
                 textColor: self.config.recButtonForegroundColor,
                 fillColor: self.config.recButtonFillColor,
                 longPressStartAction: {
-                    // self.conversationManager.startListening()
+                    self.conversationManager.startListening()
                 },
                 longPressEndAction: {
-                    // self.conversationManager.processAndPlayResponse()
+                    let assistantResponse = self.conversationManager.processAndPlayResponse()
+                    
+                    self.assistantAnswerText = assistantResponse.textAnswer
                 }
             )
         }
@@ -84,21 +87,22 @@ public struct PaymentsVocalAssistantView: View {
             ) 
             else {
                 // initialization error occurred
-                self.assistantAnswer = self.config.initializationErrorMessage
-                logError("PaymentsVocalAssistant is nil after getting singleton instance")
+                self.assistantAnswerText = self.config.initializationErrorMessage
                 
+                logError("PaymentsVocalAssistant is nil after getting singleton instance")
+                self.isAssistantInitialized = true
                 return
             }
             
             logSuccess("vocal assistant initialized")
             self.isAssistantInitialized = true
-            self.conversationManager = vocalAssistant.newConversation(defaultErrorMessage: self.config.errorResponse)
+            self.conversationManager = vocalAssistant.newConversation(
+                withMessage: self.config.startConversationQuestion,
+                andDefaultErrorMessage: self.config.errorResponse
+            )
+            
+            self.assistantAnswerText = self.config.startConversationQuestion
         }
-    }
-    
-    private func captureSpeech() {
-        // Simulate an assistant's response
-        self.assistantAnswer = "I'm good, thank you for asking!"
     }
 }
 

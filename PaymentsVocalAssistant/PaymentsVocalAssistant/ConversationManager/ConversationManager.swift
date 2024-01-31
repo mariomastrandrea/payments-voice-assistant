@@ -14,45 +14,49 @@ public class ConversationManager {
     private let dst: VocalAssistantDST
     private let speechSyntesizer: SpeechSynthesizer
     private let defaultErrorMessage: String
+    private let startConversationMessage: String
     
-    init(speechRecognizer: SpeechRecognizer, dst: VocalAssistantDST, speechSyntesizer: SpeechSynthesizer, defaultErrorMessage: String) {
+    init(speechRecognizer: SpeechRecognizer, dst: VocalAssistantDST, speechSyntesizer: SpeechSynthesizer, defaultErrorMessage: String, startConversationMessage: String) {
         self.speechRecognizer = speechRecognizer
         self.dst = dst
         self.speechSyntesizer = speechSyntesizer
         self.defaultErrorMessage = defaultErrorMessage
+        self.startConversationMessage = startConversationMessage
+        
+        self.speechSyntesizer.speak(text: startConversationMessage)
     }
     
     func startListening() {
         // start the speech recognizer
         self.speechRecognizer.startTranscribing()
+        logInfo("Start recording...")
     }
     
-    func processAndPlayResponse() -> String {
+    func processAndPlayResponse() -> VocalAssistantResponse {
         // TODO: stop recording, process the speech, convert to text, feed the DST, get the answer, play the answer, return the answer
+        logInfo("Stop recording")
         self.speechRecognizer.stopTranscribing()
         
         
-        let answer = self.retrieveAnswer()
-        self.speechSyntesizer.speak(text: answer)
+        let response = self.retrieveResponse()
+        self.speechSyntesizer.speak(text: response.textAnswer)
         
-        return answer
+        logInfo(response.textAnswer)
+        
+        return response
     }
     
-    private func retrieveAnswer() -> String {
+    private func retrieveResponse() -> VocalAssistantResponse {
         let errorOccurred = self.speechRecognizer.errorOccurred
-        let userTranscript = self.speechRecognizer.bestTranscript
+        let transcript = self.speechRecognizer.bestTranscript
         
         if errorOccurred {
-            return defaultErrorMessage
+            return .appError(
+                errorMessage: transcript,
+                followUpQuestion: defaultErrorMessage
+            )
         }
         
-        let answer = self.dst.request(userTranscript)
-        
-        switch answer {
-            case .followUpQuestion(let question): 
-                return question
-            default: 
-                return "sadfghdsfghfrgjreth"
-        }
+        return self.dst.request(transcript)
     }
 }

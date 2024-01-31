@@ -124,7 +124,10 @@ public class PaymentsVocalAssistant {
      
      Call this method each time the user is starting a new conversation
      */
-    public func newConversation(defaultErrorMessage: String) -> ConversationManager {
+    public func newConversation(
+        withMessage startConversationMessage: String,
+        andDefaultErrorMessage defaultErrorMessage: String
+    ) -> ConversationManager {
         // create a new DST dependency to manage the new conversation
         let dst = VocalAssistantDST(
             intentAndEntitiesExtractor: self.intentAndEntitiesExtractor,
@@ -136,7 +139,8 @@ public class PaymentsVocalAssistant {
             speechRecognizer: self.speechRecognizer,
             dst: dst,
             speechSyntesizer: self.speechSynthesizer,
-            defaultErrorMessage: defaultErrorMessage
+            defaultErrorMessage: defaultErrorMessage,
+            startConversationMessage: startConversationMessage
         )
     }
 }
