@@ -24,7 +24,8 @@ struct VocalAssistantRecButton: View {
         return Double(SpeechConfig.defaultStartDelayMs) / 1000.0
     }
     
-    init(disabled: Bool, imageName: String, text: String, textColor: Color, fillColor: Color, longPressStartAction: @escaping () -> Void, longPressEndAction: @escaping () -> Void) {
+    init(disabled: Bool, imageName: String, text: String, textColor: Color, fillColor: Color, longPressStartAction: @escaping () -> Void, longPressEndAction: @escaping () -> Void) 
+    {
         self.disabled = disabled
         self.imageName = imageName
         self.text = text
@@ -32,13 +33,6 @@ struct VocalAssistantRecButton: View {
         self.fillColor = fillColor
         self.longPressStartAction = longPressStartAction
         self.longPressEndAction = longPressEndAction
-    }
-    
-    struct VocalAssistantRecButtonStyle: ButtonStyle {
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .opacity(configuration.isPressed ? 0.7 : 1.0) // Custom opacity on tap
-        }
     }
     
     var body: some View {

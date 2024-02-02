@@ -107,4 +107,23 @@ extension String {
         return regex.firstMatch(in: self, options: [],
                          range: NSRange(location: 0, length: self.utf16.count)) != nil
     }
+    
+    func similarity(with literal: String) -> Double {
+        if literal.isEmpty || self.isEmpty {
+            return 0.0
+        }
+        
+        var selfChars = self.lowercased().map { String($0) }
+        let maxCount = max(self.count, literal.count)
+        var numSameChars = 0
+        
+        for char in literal.lowercased() {
+            if let i = selfChars.firstIndex(of: String(char)) {
+                numSameChars += 1
+                selfChars.remove(at: i)
+            }
+        }
+        
+        return Double(numSameChars) / Double(maxCount)
+    }
 }

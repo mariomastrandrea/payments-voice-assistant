@@ -23,4 +23,12 @@ public struct VocalAssistantCurrency {
         self.symbols = symbols
         self.literals = literals
     }
+    
+    func match(with literal: String) -> Bool {
+        return literals.contains { currencyLiteral in
+            currencyLiteral.similarity(with: literal) > DefaultVocalAssistantConfig.similarityThreshold
+        } || symbols.contains { currencySymbol in
+            currencySymbol.similarity(with: literal) > DefaultVocalAssistantConfig.similarityThreshold
+        }
+    }
 }

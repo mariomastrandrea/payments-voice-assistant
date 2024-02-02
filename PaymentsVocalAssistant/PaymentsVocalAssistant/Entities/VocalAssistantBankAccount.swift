@@ -29,5 +29,13 @@ public struct VocalAssistantBankAccount {
         self.default = `default`
         self.currency = currency
     }
+    
+    func match(with literal: String) -> Bool {
+        if literal == "default" || literal == "primary" {
+            return self.default
+        }
+        
+        return self.name.similarity(with: literal) > DefaultVocalAssistantConfig.similarityThreshold
+    }
 }
 

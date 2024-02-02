@@ -16,18 +16,14 @@ public struct PaymentsVocalAssistantView: View {
     @State private var isAssistantInitialized: Bool = false
     
     // app state
-    private let userContacts: [VocalAssistantContact]
-    private let userBankAccounts: [VocalAssistantBankAccount]
+    private let appContext: AppContext
     
 
     public init(
-        userContacts: [VocalAssistantContact],
-        userBankAccounts: [VocalAssistantBankAccount],
+        appContext: AppContext,
         config: VocalAssistantCustomConfig = VocalAssistantCustomConfig()
     ) {
-        self.userContacts = userContacts
-        self.userBankAccounts = userBankAccounts
-        
+        self.appContext = appContext
         self.config = config
         self.isAssistantInitialized = false
         self.assistantAnswerText = ""
@@ -39,9 +35,7 @@ public struct PaymentsVocalAssistantView: View {
                 self.config.title,
                 color: self.config.titleTextColor
             ).onAppear {
-                if !self.isAssistantInitialized {
-                    self.initializeVocalAssistant()
-                }
+                self.initializeVocalAssistant()
             }
             
             if !self.isAssistantInitialized {
@@ -70,7 +64,7 @@ public struct PaymentsVocalAssistantView: View {
                 longPressEndAction: {
                     let assistantResponse = self.conversationManager.processAndPlayResponse()
                     
-                    self.assistantAnswerText = assistantResponse.textAnswer
+                    self.assistantAnswerText = assistantResponse.completeAnswer
                 }
             )
         }
@@ -82,9 +76,8 @@ public struct PaymentsVocalAssistantView: View {
         Task { @MainActor in
             // instantiate the PaymentsVocalAssistant
             guard let vocalAssistant = await PaymentsVocalAssistant.instance(
-                userContacts: self.userContacts,
-                userBankAccounts: self.userBankAccounts
-            ) 
+                appContext: self.appContext
+            )
             else {
                 // initialization error occurred
                 self.assistantAnswerText = self.config.initializationErrorMessage
@@ -94,21 +87,22 @@ public struct PaymentsVocalAssistantView: View {
                 return
             }
             
-            logSuccess("vocal assistant initialized")
-            self.isAssistantInitialized = true
+            // create a new conversation with the specified opening message and error message
             self.conversationManager = vocalAssistant.newConversation(
                 withMessage: self.config.startConversationQuestion,
                 andDefaultErrorMessage: self.config.errorResponse
             )
             
             self.assistantAnswerText = self.config.startConversationQuestion
+            
+            logSuccess("vocal assistant initialized")
+            self.isAssistantInitialized = true
         }
     }
 }
 
 #Preview {
     PaymentsVocalAssistantView(
-        userContacts: [],
-        userBankAccounts: []
+        appContext: AppContext.default
     )
 }

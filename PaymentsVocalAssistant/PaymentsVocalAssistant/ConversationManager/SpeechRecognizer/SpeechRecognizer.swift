@@ -246,8 +246,6 @@ class SpeechRecognizer {
             }
         }
         else {
-            // throw RecognizerError.notSupportedOnDeviceRecognition
-            
             // just proceed with *online* Speech Recognition
             logError("*** On device Recognition is not available! ***")
         }

@@ -14,7 +14,8 @@ enum GlobalConfig {
 
 public enum DefaultVocalAssistantConfig {
     // unchangeable
-    static let intentUncertaintyThreshold = 0.8
+    static let uncertaintyThreshold = Float32(0.8)
+    static let similarityThreshold = 0.75
     
     // * UI *
     public static let defaultBackgroundColor = Color.clear
@@ -36,9 +37,13 @@ public enum DefaultVocalAssistantConfig {
     // * Vocal Assistant *
     
     // sentences
-    public static let defaultStartConversationQuestion = "Hi! How can I help you?"
+    public static let defaultStartConversation = "Hi! I can assist you performing some money operations inside the app."
     public static let defaultInitializationErrorMessage = "Sorry, an error occurred during my initialization, we apologize for the inconvenience. Exit and try again later."
     public static let defaultErrorResponse = "Sorry, an error occurred processing your request. Let's try again."
+    
+    enum DST {
+        public static let intentNotChosenResponse = "I'm sorry, I cannot help you with that. I can assist you sending some money, requesting some money or checking info about your bank accounts."
+    }
 }
 
 public struct VocalAssistantCustomConfig {
@@ -77,7 +82,7 @@ public struct VocalAssistantCustomConfig {
         recButtonText: String = DefaultVocalAssistantConfig.defaultRecButtonText,
         recButtonFillColor: Color = DefaultVocalAssistantConfig.defaultRecButtonFillColor,
         recButtonForegroundColor: Color = DefaultVocalAssistantConfig.defaultRecButtonForegroundColor,
-        startConversationQuestion: String = DefaultVocalAssistantConfig.defaultStartConversationQuestion,
+        startConversationQuestion: String = DefaultVocalAssistantConfig.defaultStartConversation,
         initializationErrorMessage: String = DefaultVocalAssistantConfig.defaultInitializationErrorMessage,
         errorResponse: String = DefaultVocalAssistantConfig.defaultErrorResponse
     ) {

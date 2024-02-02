@@ -17,8 +17,7 @@ public class PaymentsVocalAssistant {
     private static let type: AssistantModelType = .bert
     
     // app context
-    private var userContacts: [VocalAssistantContact]
-    private var userBankAccounts: [VocalAssistantBankAccount]
+    private var appContext: AppContext
     
     private let intentAndEntitiesExtractor: any IntentAndEntitiesExtractor
     private let speechRecognizer: SpeechRecognizer
@@ -31,8 +30,7 @@ public class PaymentsVocalAssistant {
      Call this method just once, at app initialization time
      */
     private init?(
-        userContacts: [VocalAssistantContact],
-        userBankAccounts: [VocalAssistantBankAccount]
+        appContext: AppContext
     ) async {
         // initialize a Intent and Entities Extractor
         switch PaymentsVocalAssistant.type {
@@ -47,17 +45,16 @@ public class PaymentsVocalAssistant {
         self.speechRecognizer = speechRecognizer
         
         await self.speechRecognizer.createCustomLM(
-            names: userContacts.compactMap { $0.firstName.isEmpty ? nil : $0.firstName },
-            surnames: userContacts.compactMap { $0.lastName.isEmpty ? nil : $0.lastName },
-            banks: userBankAccounts.map { $0.name }
+            names: appContext.userContacts.compactMap { $0.firstName.isEmpty ? nil : $0.firstName },
+            surnames: appContext.userContacts.compactMap { $0.lastName.isEmpty ? nil : $0.lastName },
+            banks: appContext.userBankAccounts.map { $0.name }
         )
         
         // initialize speech synthesizer
         self.speechSynthesizer = SpeechSynthesizer()
         
         // save app context
-        self.userContacts = userContacts
-        self.userBankAccounts = userBankAccounts
+        self.appContext = appContext
     }
     
     /** Return the singleton instance of the Vocal Assistant.
@@ -65,19 +62,16 @@ public class PaymentsVocalAssistant {
         If this is the first time the method is called, it instantiates and initializes the
         Vocal Assistant with its subcomponents, so this call might take a long time */
     public static func instance(
-        userContacts: [VocalAssistantContact] = [],
-        userBankAccounts: [VocalAssistantBankAccount] = []
+        appContext: AppContext = AppContext.default
     ) async -> PaymentsVocalAssistant? {
         if _instance == nil {
             _instance = await PaymentsVocalAssistant(
-                userContacts: userContacts,
-                userBankAccounts: userBankAccounts
+                appContext: appContext
             )
         }
         else {
             // just update the app context
-            _instance?.userContacts = userContacts
-            _instance?.userBankAccounts = userBankAccounts
+            _instance?.appContext = appContext
         }
         
         return _instance
@@ -119,9 +113,8 @@ public class PaymentsVocalAssistant {
     
     /**
      Create a new conversation and get the corresponding dialogue manager, providing the user's app context
-     - parameter userContacts: list of the contacts which might be referred by the user in the conversation
-     - parameter userBankAccounts: list of the bank accounts the user can use to perform in-app operations
-     
+     - parameter appContext: object enclosing the app context's entities which might be referred by the user in the conversation
+
      Call this method each time the user is starting a new conversation
      */
     public func newConversation(
@@ -129,18 +122,18 @@ public class PaymentsVocalAssistant {
         andDefaultErrorMessage defaultErrorMessage: String
     ) -> ConversationManager {
         // create a new DST dependency to manage the new conversation
-        let dst = VocalAssistantDST(
+        let dst = VocalAssistantDst(
             intentAndEntitiesExtractor: self.intentAndEntitiesExtractor,
-            userContacts: self.userContacts,
-            userBankAccounts: self.userBankAccounts
+            appContext: self.appContext,
+            defaultErrorMessage: defaultErrorMessage,
+            startConversationMessage: startConversationMessage
         )
         
         return ConversationManager(
             speechRecognizer: self.speechRecognizer,
             dst: dst,
             speechSyntesizer: self.speechSynthesizer,
-            defaultErrorMessage: defaultErrorMessage,
-            startConversationMessage: startConversationMessage
+            defaultErrorMessage: defaultErrorMessage
         )
     }
 }

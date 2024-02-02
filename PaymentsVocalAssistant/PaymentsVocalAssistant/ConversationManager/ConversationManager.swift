@@ -11,19 +11,18 @@ import Foundation
     It represent the higher interface to interact with the Vocal Assistant, recording and provide it a speech, and playing the response */
 public class ConversationManager {
     private let speechRecognizer: SpeechRecognizer
-    private let dst: VocalAssistantDST
+    private let dst: VocalAssistantDst
     private let speechSyntesizer: SpeechSynthesizer
     private let defaultErrorMessage: String
-    private let startConversationMessage: String
     
-    init(speechRecognizer: SpeechRecognizer, dst: VocalAssistantDST, speechSyntesizer: SpeechSynthesizer, defaultErrorMessage: String, startConversationMessage: String) {
+    
+    init(speechRecognizer: SpeechRecognizer, dst: VocalAssistantDst, speechSyntesizer: SpeechSynthesizer, defaultErrorMessage: String) {
         self.speechRecognizer = speechRecognizer
         self.dst = dst
         self.speechSyntesizer = speechSyntesizer
         self.defaultErrorMessage = defaultErrorMessage
-        self.startConversationMessage = startConversationMessage
         
-        self.speechSyntesizer.speak(text: startConversationMessage)
+        self.speechSyntesizer.speak(text: self.dst.startConversation())
     }
     
     func startListening() {
@@ -33,15 +32,16 @@ public class ConversationManager {
     }
     
     func processAndPlayResponse() -> VocalAssistantResponse {
-        // TODO: stop recording, process the speech, convert to text, feed the DST, get the answer, play the answer, return the answer
+        // stop the recording and process the speech, converting it into a transcript
         logInfo("Stop recording")
         self.speechRecognizer.stopTranscribing()
         
-        
+        // feed and retrieve response from the DST
         let response = self.retrieveResponse()
-        self.speechSyntesizer.speak(text: response.textAnswer)
         
-        logInfo(response.textAnswer)
+        // play it out loud
+        self.speechSyntesizer.speak(text: response.completeAnswer)
+        logInfo(response.completeAnswer)
         
         return response
     }
@@ -53,7 +53,8 @@ public class ConversationManager {
         if errorOccurred {
             return .appError(
                 errorMessage: transcript,
-                followUpQuestion: defaultErrorMessage
+                answer: defaultErrorMessage,
+                followUpQuestion: "How can I help you?"
             )
         }
         

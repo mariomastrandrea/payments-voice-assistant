@@ -27,7 +27,12 @@ private func log(_ messages: [String], type: LogType = .info) {
     if !GlobalConfig.enableLogs { return }
     
     for m in messages {
-        print("\(type.symbol) Log: \(m)")
+        if m.isEmpty {
+            print()
+        }
+        else {
+            print("\(type.symbol) Log: \(m)")
+        }
     }
 }
 
