@@ -113,17 +113,20 @@ extension String {
             return 0.0
         }
         
-        var selfChars = self.lowercased().map { String($0) }
+        var selfChars = self.map { String($0) }
         let maxCount = max(self.count, literal.count)
         var numSameChars = 0
         
-        for char in literal.lowercased() {
+        for char in literal {
             if let i = selfChars.firstIndex(of: String(char)) {
                 numSameChars += 1
                 selfChars.remove(at: i)
             }
         }
         
-        return Double(numSameChars) / Double(maxCount)
+        let similarity = Double(numSameChars) / Double(maxCount)
+        logInfo("Computed similarity between \"\(self)\" and \"\(literal)\": \(similarity)")
+        
+        return similarity
     }
 }

@@ -58,71 +58,54 @@ public class VocalAssistantDst: DstStateChanger {
         logSuccess("Predicted intent: \(prediction.predictedIntent.type) (\(prediction.predictedIntent.probability))")
         logSuccess("Predicted entities: [\(prediction.predictedEntities.map { "\($0.reconstructedEntity) (\($0.type) - \($0.entityProbability))" }.joined(separator: ", "))]")
 
+        let response: VocalAssistantResponse
         
         switch prediction.predictedIntent.type {
         case .none:
-            return self.currentState.userExpressedNoneIntent(
-                probability: prediction.predictedIntent.probability,
+            response = self.currentState.userExpressedNoneIntent(
                 entities: prediction.predictedEntities,
                 stateChanger: self
             )
         case .checkBalance:
-            return self.currentState.userExpressedCheckBalanceIntent(
+            response = self.currentState.userExpressedCheckBalanceIntent(
                 probability: prediction.predictedIntent.probability,
                 entities: prediction.predictedEntities,
                 stateChanger: self
             )
         case .checkTransactions:
-            return self.currentState.userExpressedCheckTransactionsIntent(
+            response = self.currentState.userExpressedCheckTransactionsIntent(
                 probability: prediction.predictedIntent.probability,
                 entities: prediction.predictedEntities,
                 stateChanger: self
             )
         case .sendMoney:
-            return self.currentState.userExpressedSendMoneyIntent(
+            response = self.currentState.userExpressedSendMoneyIntent(
                 probability: prediction.predictedIntent.probability,
                 entities: prediction.predictedEntities,
                 stateChanger: self
             )
         case .requestMoney:
-            return self.currentState.userExpressedRequestMoneyIntent(
+            response = self.currentState.userExpressedRequestMoneyIntent(
                 probability: prediction.predictedIntent.probability,
                 entities: prediction.predictedEntities,
                 stateChanger: self
             )
         case .yes:
-            return self.currentState.userExpressedYesIntent(
+            response = self.currentState.userExpressedYesIntent(
                 probability: prediction.predictedIntent.probability,
                 stateChanger: self
             )
         case .no:
-            return self.currentState.userExpressedNoIntent(
+            response = self.currentState.userExpressedNoIntent(
                 probability: prediction.predictedIntent.probability,
                 stateChanger: self
             )
         }
         
-        /*
-        if predictedIntent.isSomeOperationIntent {
-            // send_money, request_money, check_balance, check_transactions
-            if predictedIntent.type != self.currentUserIntentFrame?.intentType {
-                // * the user expressed a new (different) intent: change and create a new Frame *
-                self.currentUserIntentFrame = predictedIntent.type.toNewFrame()
-            }
-        }
+        // log the current state
+        logInfo("Current DST state: \(self.currentState)")
         
-        guard let currentUserIntentFrame = self.currentUserIntentFrame else {
-            // * the user did not express any valid intent *
-            return .followUpQuestion(question: DefaultVocalAssistantConfig.DST.intentNotChosenResponse)
-        }
-         */
-        
-        // distinguish between yes, no, none 
-        
-        // TODO: check intent probability, if below threshold ask to confirm the intent
-        
-        
-        /* TODO: (later) perform matching between the found entities and all the possible ones, like possible banks and user contacts */
+        return response
     }
     
     func changeDstState(to newDstState: DstState) {

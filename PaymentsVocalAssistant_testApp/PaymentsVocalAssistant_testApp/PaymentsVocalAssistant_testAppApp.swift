@@ -36,8 +36,11 @@ struct PaymentsVocalAssistant_testAppApp: App {
             }
             else {
                 PaymentsVocalAssistantView(
-                    userContacts: userContacts,
-                    userBankAccounts: userBankAccounts
+                    appContext: AppContext(
+                        userContacts: userContacts,
+                        userBankAccounts: userBankAccounts
+                    ),
+                    appDelegate: AppDelegateStub()
                 )
             }
         }
@@ -76,13 +79,14 @@ struct PaymentsVocalAssistant_testAppApp: App {
             try self.contactStore.enumerateContacts(with: fetchRequest) { (contact, stop) in
                 if !contact.phoneNumbers.isEmpty {
                     let number = contact.phoneNumbers[0].value.stringValue
-                    print(number)
                     let name = contact.givenName
                     let surname = contact.familyName
                     
                     if !number.isEmpty && !(name+surname).isEmpty {
                         let contact = VocalAssistantContact(id: number, firstName: name, lastName: surname)
                         contacts.append(contact)
+                        
+                        print("\(number) - \((name + " " + surname).trimmingCharacters(in: .whitespacesAndNewlines))")
                     }
                 }
                 
@@ -98,18 +102,8 @@ struct PaymentsVocalAssistant_testAppApp: App {
     
     private func simulateBankAccounts() -> [VocalAssistantBankAccount] {
         return [
-            VocalAssistantBankAccount(
-                id: "1",
-                name: "Top Bank",
-                default: true,
-                currency: VocalAssistantCurrency(id: "$", symbols: ["$"], literals: ["dollar"])
-            ),
-            VocalAssistantBankAccount(
-                id: "2",
-                name: "Loyal Bank",
-                default: false,
-                currency: VocalAssistantCurrency(id: "AED", symbols: ["AED"], literals: ["dirham"])
-            )
+            AppDelegateStub.futureBankAccount,
+            AppDelegateStub.topBankAccount
         ]
     }
 

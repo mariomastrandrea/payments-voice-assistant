@@ -65,6 +65,7 @@ public class ConversationManager {
             )
         }
         
+        logInfo("User transcript: \"\(transcript)\"")
         let dstResponse = self.dst.request(transcript)
         
         if case .performInAppOperation(let userIntent, let successMessage, let failureMessage, _, let followUpQuestion) = dstResponse {
@@ -84,11 +85,11 @@ public class ConversationManager {
                     answer = failureMessage
                 }
                 
-            case .checkTransactions(let successMessage, let failureMessage):
+            case .checkLastTransactions(let bankAccount, let contact, let successMessage, let failureMessage):
                 do {
-                    let transactions = try await self.appDelegate.performInAppCheckLastTransactionsOperation()
+                    let transactions = try await self.appDelegate.performInAppCheckLastTransactionsOperation(for: bankAccount, involving: contact)
                     if transactions.isEmpty {
-                        answer = "You didn't perform any transaction in the last period."
+                        answer = "You didn't perform any transaction in the last period\(bankAccount == nil ? "" : " with your \(bankAccount!.name) account")\(contact == nil ? "" : " involving \(contact!.description)")."
                     }
                     else {
                         answer = successMessage.replacingOccurrences(
@@ -96,48 +97,10 @@ public class ConversationManager {
                             with: transactions.map { $0.description }.joined(separator: "\n")
                         )
                     }
-                    logInfo("Successfully performed in-app check last transactions -> #\(transactions.count) transactions ")
+                    logInfo("Successfully performed in-app check last transactions\(bankAccount == nil ? "" : " for \(bankAccount!.name) account")\(contact == nil ? "" : " involving \(contact!.description)") -> #\(transactions.count) transactions ")
                 }
                 catch {
-                    logError("An error occurred performing in-app check transactions operation: \(error)")
-                    answer = failureMessage
-                }
-                
-            case .checkBankAccountTransactions(let bankAccount):
-                do {
-                    let transactions = try await self.appDelegate.performInAppCheckLastTransactionsOperation(for: bankAccount)
-                    if transactions.isEmpty {
-                        answer = "You didn't perform any transaction in the last period with your \(bankAccount.name) account."
-                    }
-                    else {
-                        answer = successMessage.replacingOccurrences(
-                            of: "{transactions}",
-                            with: transactions.map { $0.description }.joined(separator: "\n")
-                        )
-                    }
-                    logInfo("Successfully performed in-app operation check transactions (for bank account \(bankAccount)) -> #\(transactions.count) transactions")
-                }
-                catch {
-                    logError("An error occurred performing in-app check transactions operation (for bank account \(bankAccount)): \(error)")
-                    answer = failureMessage
-                }
-                
-            case .checkTransactionsDealingWith(let contact):
-                do {
-                    let transactions = try await self.appDelegate.performInAppCheckLastTransactionsOperation(involving: contact)
-                    if transactions.isEmpty {
-                        answer = "You didn't perform any transaction in the last period involving \(contact)."
-                    }
-                    else {
-                        answer = successMessage.replacingOccurrences(
-                            of: "{contact}",
-                            with: transactions.map { $0.description }.joined(separator: "\n")
-                        )
-                    }
-                    logInfo("Successfully performed in-app operation check transactions (involving contact \(contact)) -> #\(transactions.count) transactions")
-                }
-                catch {
-                    logError("An error occurred performing in-app check transactions operation (involving contact \(contact)): \(error)")
+                    logError("An error occurred performing in-app check transactions operation\(bankAccount == nil ? "" : " for \(bankAccount!.name) account")\(contact == nil ? "" : " involving \(contact!.description)"): \(error)")
                     answer = failureMessage
                 }
                 

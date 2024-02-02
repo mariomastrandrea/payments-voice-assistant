@@ -18,24 +18,12 @@ public protocol PaymentsVocalAssistantDelegate {
     func performInAppCheckBalanceOperation(for bankAccount: VocalAssistantBankAccount) async throws -> VocalAssistantAmount
     
     /**
-     Check the user's last transactions involving a specific bank account
+     Check the user's last transactions, eventually involving a specific bank account and/or a specific contact
      - parameter bankAccount: the specific bank account whose last transactions have to be checked
+     - parameter contact: the specific contact whose last transactions have to be checked
      - returns: the list of the requested transactions
      */
-    func performInAppCheckLastTransactionsOperation(for bankAccount: VocalAssistantBankAccount) async throws -> [VocalAssistantTransaction]
-    
-    /**
-     Check the user's last transactions involving a specific contact, either as receiver or as sender
-     - parameter bankAccount: the specific contact whose last transactions have to be checked
-     - returns: the list of the requested transactions
-     */
-    func performInAppCheckLastTransactionsOperation(involving contact: VocalAssistantContact) async throws -> [VocalAssistantTransaction]
-    
-    /**
-     Check the user's last transactions
-     - returns: the list of the requested transactions
-     */
-    func performInAppCheckLastTransactionsOperation() async throws -> [VocalAssistantTransaction]
+    func performInAppCheckLastTransactionsOperation(for bankAccount: VocalAssistantBankAccount?, involving contact: VocalAssistantContact?) async throws -> [VocalAssistantTransaction]
     
     /**
      Send an amount of money to a specific contact, using a specified user's bank account
@@ -56,17 +44,17 @@ public protocol PaymentsVocalAssistantDelegate {
     func performInAppRequestMoneyOperation(amount: VocalAssistantAmount, from sender: VocalAssistantContact, using bankAccount: VocalAssistantBankAccount) async throws -> (success: Bool, errorMsg: String?)
 }
 
-class AppDelegateStub: PaymentsVocalAssistantDelegate {
-    private static let dollarCurrency = VocalAssistantCurrency(id: "$", symbols: ["$", "USD"], literals: ["dollar"])
-    private static let aedCurrency = VocalAssistantCurrency(id: "AED", symbols: ["AED"], literals: ["dirham"])
+public class AppDelegateStub: PaymentsVocalAssistantDelegate {
+    public static let dollarCurrency = VocalAssistantCurrency(id: "$", symbols: ["$", "USD"], literals: ["dollar"])
+    public static let aedCurrency = VocalAssistantCurrency(id: "AED", symbols: ["AED"], literals: ["dirham"])
     
-    private static let topBankAccount = VocalAssistantBankAccount(id: "1", name: "Top Bank", default: true, currency: dollarCurrency)
-    private static let futureBankAccount = VocalAssistantBankAccount(id: "2", name: "Future Bank", default: false, currency: aedCurrency)
+    public static let topBankAccount = VocalAssistantBankAccount(id: "1", name: "Top Bank", default: true, currency: dollarCurrency)
+    public static let futureBankAccount = VocalAssistantBankAccount(id: "2", name: "Future Bank", default: false, currency: aedCurrency)
     
-    private static let antonioRossiContact = VocalAssistantContact(id: "01234567", firstName: "Antonio", lastName: "Rossi")
-    private static let giuseppeVerdiContact = VocalAssistantContact(id: "12333444", firstName: "Giuseppe", lastName: "Verdi")
+    public static let antonioRossiContact = VocalAssistantContact(id: "01234567", firstName: "Antonio", lastName: "Rossi")
+    public static let giuseppeVerdiContact = VocalAssistantContact(id: "12333444", firstName: "Giuseppe", lastName: "Verdi")
     
-    private static let lastTransactions: [VocalAssistantTransaction] = [
+    public static let lastTransactionsStub: [VocalAssistantTransaction] = [
         VocalAssistantTransaction(
             amount: VocalAssistantAmount(
                 value: 20.5,
@@ -123,44 +111,79 @@ class AppDelegateStub: PaymentsVocalAssistantDelegate {
         )
     ]
     
+    private let contacts: [VocalAssistantContact]
+    private let bankAccounts: [VocalAssistantBankAccount]
+    private let lastTransactions: [VocalAssistantTransaction]
+
     
-    func 
+    public init(
+        contacts: [VocalAssistantContact] = [
+            AppDelegateStub.antonioRossiContact,
+            AppDelegateStub.giuseppeVerdiContact
+        ],
+        bankAccounts: [VocalAssistantBankAccount] = [
+            AppDelegateStub.futureBankAccount,
+            AppDelegateStub.topBankAccount
+        ],
+        transactions: [VocalAssistantTransaction] = AppDelegateStub.lastTransactionsStub
+    ) {
+        self.contacts = contacts
+        self.bankAccounts = bankAccounts
+        self.lastTransactions = transactions
+    }
+    
+    public func 
     performInAppCheckBalanceOperation(for bankAccount: VocalAssistantBankAccount) async throws -> VocalAssistantAmount {
-        let fakeAmount = VocalAssistantAmount(
-            value: 127.88,
-            currency: AppDelegateStub.dollarCurrency
-        )
-        logInfo("App delegate stub performed check balance: \(fakeAmount.description)")
-        return fakeAmount
+        let amounts: [Double] = [127.88, 256.59, 44.80, 33.12, 40.11, 86.50, 167.22, 81.88]
+        
+        var bankAccountFakeBalances: [VocalAssistantBankAccount: VocalAssistantAmount] = [:]
+        self.bankAccounts.forEach { bankAccount in
+            let randomAmount = amounts.randomElement()!
+            bankAccountFakeBalances[bankAccount] = VocalAssistantAmount(
+                value: randomAmount,
+                currency: bankAccount.currency
+            )
+        }
+        
+        let result = bankAccountFakeBalances.first { (b, _) in b.id == bankAccount.id }
+        
+        guard let (_, fakeAccountBalance) = result else {
+            throw StubError(errorMsg: "\(bankAccount.name) bank account not found")
+        }
+        
+        logInfo("App delegate stub performed check balance: \(fakeAccountBalance.description)")
+        return fakeAccountBalance
     }
     
-    func performInAppCheckLastTransactionsOperation(for bankAccount: VocalAssistantBankAccount) async throws -> [VocalAssistantTransaction] {
+    public func performInAppCheckLastTransactionsOperation(for bankAccount: VocalAssistantBankAccount?, involving contact: VocalAssistantContact?) async throws -> [VocalAssistantTransaction] {
         
-        let fakeTransactions = AppDelegateStub.lastTransactions.filter { transaction in
-            transaction.bankAccount.id == bankAccount.id
+        let fakeTransactions = self.lastTransactions.filter { transaction in
+            (bankAccount != nil ? transaction.bankAccount.id == bankAccount!.id : true) &&
+            (contact != nil ? transaction.contact.id == contact!.id : true)
         }
+        
         return fakeTransactions
     }
     
-    func performInAppCheckLastTransactionsOperation(involving contact: VocalAssistantContact) async throws -> [VocalAssistantTransaction] {
-        
-        let fakeTransactions = AppDelegateStub.lastTransactions.filter { transaction in
-            transaction.contact.id == contact.id
-        }
-        return fakeTransactions
-    }
-    
-    func performInAppCheckLastTransactionsOperation() async throws -> [VocalAssistantTransaction] {
-        return AppDelegateStub.lastTransactions
-    }
-    
-    func performInAppSendMoneyOperation(amount: VocalAssistantAmount, to receiver: VocalAssistantContact, using bankAccount: VocalAssistantBankAccount) async throws -> (success: Bool, errorMsg: String?) {
+    public func performInAppSendMoneyOperation(amount: VocalAssistantAmount, to receiver: VocalAssistantContact, using bankAccount: VocalAssistantBankAccount) async throws -> (success: Bool, errorMsg: String?) {
         let outcome = [true, false].randomElement()!
         return (success: outcome, errorMsg: outcome ? nil : "You have unsufficient funds in the specified bank account")
     }
     
-    func performInAppRequestMoneyOperation(amount: VocalAssistantAmount, from sender: VocalAssistantContact, using bankAccount: VocalAssistantBankAccount) async throws -> (success: Bool, errorMsg: String?) {
+    public func performInAppRequestMoneyOperation(amount: VocalAssistantAmount, from sender: VocalAssistantContact, using bankAccount: VocalAssistantBankAccount) async throws -> (success: Bool, errorMsg: String?) {
         let outcome = [true, false].randomElement()!
         return (success: outcome, errorMsg: outcome ? nil : "An unexpected error occurred processing the request money operation")
+    }
+}
+
+public struct StubError: Error, CustomStringConvertible {
+    public let errorMsg: String
+    
+    public var description: String {
+        return self.errorMsg
+    }
+    
+    public init(errorMsg: String) {
+        self.errorMsg = errorMsg
     }
 }

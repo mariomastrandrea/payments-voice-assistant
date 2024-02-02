@@ -238,7 +238,7 @@ class SpeechRecognizer {
             if #available(iOS 17, *) {
                 if let customLMconfig = self.customLMconfig as? SFSpeechLanguageModel.Configuration {
                     request.customizedLanguageModel = customLMconfig
-                    logInfo("Set customized language model")
+                    logInfo("Using customized language model for the request")
                 }
                 else {
                     logError("An error occurred retrieving the custom LM configuration")

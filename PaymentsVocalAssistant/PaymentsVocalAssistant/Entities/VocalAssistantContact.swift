@@ -10,7 +10,7 @@ import Foundation
 /** Object representing a unique contact in the app for the `PaymentsVocalAssistant`
     
     It is characterized by a `name` property which will be used by the vocal assistant to identify the requested contact in the speeches */
-public struct VocalAssistantContact: CustomStringConvertible {
+public struct VocalAssistantContact: CustomStringConvertible, Hashable {
     /** Unique id representing the contact in the app context */
     public let id: String
     
@@ -28,5 +28,9 @@ public struct VocalAssistantContact: CustomStringConvertible {
         self.id = id
         self.firstName = firstName
         self.lastName = lastName
+    }
+    
+    public static func == (lhs: VocalAssistantContact, rhs: VocalAssistantContact) -> Bool {
+        return lhs.id == rhs.id
     }
 }

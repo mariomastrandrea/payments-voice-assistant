@@ -10,7 +10,7 @@ import Foundation
 /** Object representing a unique bank account of the user for the `PaymentsVocalAssistant`
  
     It is characterized by a `name` property which will be used by the vocal assistant to identify the requested user in the speeches */
-public struct VocalAssistantBankAccount: CustomStringConvertible {
+public struct VocalAssistantBankAccount: CustomStringConvertible, Hashable {
     /** Unique id of the bank account in the app context */
     public let id: String
     
@@ -40,7 +40,11 @@ public struct VocalAssistantBankAccount: CustomStringConvertible {
             return self.default
         }
         
-        return self.name.similarity(with: literal) > DefaultVocalAssistantConfig.similarityThreshold
+        return self.name.lowercased().similarity(with: literal.lowercased()) >= DefaultVocalAssistantConfig.similarityThreshold
+    }
+    
+    public static func == (lhs: VocalAssistantBankAccount, rhs: VocalAssistantBankAccount) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 

@@ -63,10 +63,16 @@ public struct PaymentsVocalAssistantView: View {
                     self.conversationManager.startListening()
                 },
                 longPressEndAction: {
-                    let assistantResponse = self.conversationManager.processAndPlayResponse()
-                    
-                    Task { @MainActor in
-                        self.assistantAnswerText = assistantResponse.completeAnswer
+                    Task {
+                        let assistantResponse = await self.conversationManager.processAndPlayResponse()
+                        
+                        Task { @MainActor in
+                            self.assistantAnswerText = assistantResponse.completeAnswer
+                            
+                            // TODO: switch over the response and :
+                            // - make some views appear if user has to choose among accounts or among contacts,
+                            // - log/show error if there is an app error
+                        }
                     }
                 }
             )

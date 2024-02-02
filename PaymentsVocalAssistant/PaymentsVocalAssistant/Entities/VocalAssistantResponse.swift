@@ -47,4 +47,37 @@ public enum VocalAssistantResponse {
     var completeAnswer: String {
         return (self.answer + " " + self.followUpQuestion).trimmingCharacters(in: .whitespacesAndNewlines)
     }
+    
+    static func checkBalanceOperation(bankAccount: VocalAssistantBankAccount) -> Self {
+        return .performInAppOperation(
+            userIntent: .checkBalance(
+                bankAccount: bankAccount
+            ),
+            successMessage: "Here is what I found: the balance of your \(bankAccount.name) account is {amount}.",
+            failureMessage: "I'm sorry, but I encountered an unexpected error while checking the balance.",
+            answer: "",
+            followUpQuestion: "Is there anything else I can do for you?"
+        )
+    }
+    
+    static func checkTransactionsOperation(bankAccount: VocalAssistantBankAccount? = nil, contact: VocalAssistantContact? = nil, preAnswer: String? = nil) -> Self {
+        return .performInAppOperation(
+            userIntent: .checkLastTransactions(
+                bankAccount: bankAccount,
+                contact: contact
+            ),
+            successMessage: "\(preAnswer == nil ? "" : "\(preAnswer!) ")Here are your recent transactions:\n{transactions}\n",
+            failureMessage: "I'm sorry, but I encountered an unexpected error while retrieving your recent transactions.",
+            answer: "",
+            followUpQuestion: "Is there anything else I can do for you?"
+        )
+    }
+    
+    static func chooseBankAccount(among bankAccounts: [VocalAssistantBankAccount]) -> Self {
+        return .askToChooseBankAccount(
+            bankAccounts: bankAccounts,
+            answer: "I've found multiple bank accounts that can match your request.",
+            followUpQuestion: "Which account do you mean?"
+        )
+    }
 }

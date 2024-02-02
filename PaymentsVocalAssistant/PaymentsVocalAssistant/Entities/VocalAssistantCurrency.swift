@@ -8,7 +8,7 @@
 import Foundation
 
 /** Object representing a Currency for the `PaymentsVocalAssistant` */
-public struct VocalAssistantCurrency: CustomStringConvertible {
+public struct VocalAssistantCurrency: CustomStringConvertible, Hashable {
     /** Unique id representing the currency */
     public let id: String
     
@@ -35,5 +35,9 @@ public struct VocalAssistantCurrency: CustomStringConvertible {
         } || symbols.contains { currencySymbol in
             currencySymbol.similarity(with: literal) > DefaultVocalAssistantConfig.similarityThreshold
         }
+    }
+    
+    public static func == (lhs: VocalAssistantCurrency, rhs: VocalAssistantCurrency) -> Bool {
+        return lhs.id == rhs.id
     }
 }

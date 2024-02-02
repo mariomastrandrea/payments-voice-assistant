@@ -7,12 +7,12 @@
 
 import Foundation
 
-protocol DstState {
+protocol DstState : CustomStringConvertible {
     var lastResponse: VocalAssistantResponse { get set }
     
     var startSentence: String { get }
     
-    func userExpressedNoneIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse
+    func userExpressedNoneIntent(entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse
     
     func userExpressedCheckBalanceIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse
     

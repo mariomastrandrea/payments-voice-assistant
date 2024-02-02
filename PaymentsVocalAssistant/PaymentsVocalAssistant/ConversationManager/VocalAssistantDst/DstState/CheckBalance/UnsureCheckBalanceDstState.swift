@@ -8,6 +8,10 @@
 import Foundation
 
 class UnsureCheckBalanceDstState: CheckBalanceDstState {
+    override var description: String {
+        return "UnsureCheckBalanceDstState(possibleCurrency: \(possibleCurrency == nil ? "nil" : possibleCurrency!.reconstructedEntity), possibleBankAccount: \(possibleBankAccount == nil ? "nil" : possibleBankAccount!.reconstructedEntity))"
+    }
+    
     private var previousState: DstState
     private var possibleCurrency: PaymentsEntity?
     private var possibleBankAccount: PaymentsEntity?
@@ -20,7 +24,7 @@ class UnsureCheckBalanceDstState: CheckBalanceDstState {
         super.init(firstResponse: lastResponse, appContext: appContext)
     }
     
-    override func userExpressedNoneIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
+    override func userExpressedNoneIntent(entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
         
         let response: VocalAssistantResponse = .justAnswer(
             answer: "Sorry, I cannot help you with that.",
@@ -159,15 +163,8 @@ class UnsureCheckBalanceDstState: CheckBalanceDstState {
             else if matchingBankAccounts.count == 1 {
                 let bankAccount = matchingBankAccounts[0]
                 
-                let response: VocalAssistantResponse = .performInAppOperation(
-                    userIntent: .checkBalance(
-                        bankAccount: bankAccount,
-                        successMessage: "Here is what I found: the balance of your \(bankAccount.name) account is {amount}.",
-                        failureMessage: "I'm sorry, but I encountered an error while checking the balance."
-                    ),
-                    answer: "Ok, I'll check the balance of your \(bankAccount.name) account for you.",
-                    followUpQuestion: "Is there anything else I can do for you?"
-                )
+                // perform check balance operation and change DST state
+                let response: VocalAssistantResponse = .checkBalanceOperation(bankAccount: bankAccount)
                 let newState = CheckBalanceDstState(firstResponse: response, appContext: appContext, bankAccount: bankAccount)
                 stateChanger.changeDstState(to: newState)
                 
@@ -223,15 +220,7 @@ class UnsureCheckBalanceDstState: CheckBalanceDstState {
             
             // change state to the 'sure' one
             // and return the operation response
-            let response: VocalAssistantResponse = .performInAppOperation(
-                userIntent: .checkBalance(
-                    bankAccount: bankAccount,
-                    successMessage: "Here is what I found: the balance of your \(bankAccount.name) account is {amount}.",
-                    failureMessage: "I'm sorry, but I encountered an error while checking the balance."
-                ),
-                answer: "Ok, I'll check the balance of your \(bankAccount.name) account for you.",
-                followUpQuestion: "Is there anything else I can do for you?"
-            )
+            let response: VocalAssistantResponse = .checkBalanceOperation(bankAccount: bankAccount)
             
             let newState = CheckBalanceDstState(firstResponse: response, appContext: self.appContext, bankAccount: bankAccount)
             stateChanger.changeDstState(to: newState)
@@ -240,11 +229,7 @@ class UnsureCheckBalanceDstState: CheckBalanceDstState {
         }
         else {
             // more than one bank account matched -> change state and ask to choose
-            let response: VocalAssistantResponse = .askToChooseBankAccount(
-                bankAccounts: matchingBankAccounts,
-                answer: "I've found multiple bank accounts that can match your request.",
-                followUpQuestion: "Which account do you mean?"
-            )
+            let response: VocalAssistantResponse = .chooseBankAccount(among: matchingBankAccounts)
             
             let newState = CheckBalanceDstState(firstResponse: response, appContext: self.appContext)
             stateChanger.changeDstState(to: newState)

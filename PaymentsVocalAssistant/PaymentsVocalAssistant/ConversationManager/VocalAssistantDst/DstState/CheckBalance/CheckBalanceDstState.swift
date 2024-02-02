@@ -8,7 +8,11 @@
 import Foundation
 
 class CheckBalanceDstState: DstState {
-    var startSentence: String { return "" }
+    var description: String {
+        return "CheckBalanceDstState(bankAccount: \(bankAccount == nil ? "nil" : bankAccount!.description))"
+    }
+
+    var startSentence: String = ""
     var lastResponse: VocalAssistantResponse
     
     // check balance frame properties
@@ -27,7 +31,8 @@ class CheckBalanceDstState: DstState {
         probability: Float32,
         entities: [PaymentsEntity],
         previousState: DstState,
-        appContext: AppContext
+        appContext: AppContext,
+        comingFromSameState: Bool = false
     ) -> (state: CheckBalanceDstState?, firstResponse: VocalAssistantResponse) {
         // search for any currrency(ies) and bank account(s)
         let currenciesEntities = entities.filter { $0.type == .currency }
@@ -70,8 +75,8 @@ class CheckBalanceDstState: DstState {
             }
         }
         
-        // retrieve the needed entities: currency and bank account
-        // give prededence to the one with probability greater or equal than the threshold, if any
+        // retrieve the needed entities: currency and bank account (if any)
+        // give prededence to the ones with probability greater or equal than the threshold, if any
         
         var selectedCurrency = currenciesEntities.first { $0.entityProbability >= threshold }
         var selectedCurrencyUnsure = false
@@ -147,46 +152,70 @@ class CheckBalanceDstState: DstState {
             else if matchingBankAccounts.count == 1 {
                 let bankAccount = matchingBankAccounts[0]
                 
-                let response: VocalAssistantResponse = .performInAppOperation(
-                    userIntent: .checkBalance(
-                        bankAccount: bankAccount,
-                        successMessage: "Here is what I found: the balance of your \(bankAccount.name) account is {amount}.",
-                        failureMessage: "I'm sorry, but I encountered an error while checking the balance."
-                    ),
-                    answer: "Ok, I'll check the balance of your \(bankAccount.name) account for you.",
-                    followUpQuestion: "Is there anything else I can do for you?"
-                )
+                let response: VocalAssistantResponse = .checkBalanceOperation(bankAccount: bankAccount)
                 return (CheckBalanceDstState(firstResponse: response, appContext: appContext, bankAccount: bankAccount), response)
             }
             else {
                 // more than one bank accounts matched
-                let response: VocalAssistantResponse = .askToChooseBankAccount(
-                    bankAccounts: matchingBankAccounts,
-                    answer: "I've found multiple bank accounts that can match your request.",
-                    followUpQuestion: "Which account do you mean?"
-                )
+                let response: VocalAssistantResponse = .chooseBankAccount(among: matchingBankAccounts)
                 return (CheckBalanceDstState(firstResponse: response, appContext: appContext), response)
             }
         }
         else {
-            // none of the two has been specified -> ask user for specifying one
-            let response: VocalAssistantResponse = .justAnswer(
-                answer: "Ok,",
-                followUpQuestion: "which account do you want to check the balance of?"
-            )
-            
-            return (CheckBalanceDstState(firstResponse: response, appContext: appContext), response)
+            if comingFromSameState {
+                // none of the two has been specified -> inform about the misunderstanding and ask user to specify one
+                let response: VocalAssistantResponse = .justAnswer(
+                    answer: "Sorry, I didn't quite understant.",
+                    followUpQuestion: "Which account do you want to check the balance of?"
+                )
+                
+                return (CheckBalanceDstState(firstResponse: response, appContext: appContext), response)
+            }
+            else {
+                // none of the two has been specified -> confirm the intent and ask user to specify one
+                let response: VocalAssistantResponse = .justAnswer(
+                    answer: "Ok.",
+                    followUpQuestion: "Which account do you want to check the balance of?"
+                )
+                
+                return (CheckBalanceDstState(firstResponse: response, appContext: appContext), response)
+            }
         }
     }
     
-    func userExpressedNoneIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "", answer: "", followUpQuestion: "")
+    func userExpressedNoneIntent(entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
+        // (re-use the same code)
+        // the state might stay the same, but still a new instance is created
+        let (newState, response) = CheckBalanceDstState.from(
+            probability: 1.0,    // (I want to keep this state)
+            entities: entities,
+            previousState: self,
+            appContext: self.appContext,
+            comingFromSameState: true
+        )
+        
+        if let newState = newState {
+            stateChanger.changeDstState(to: newState)
+        }
+        
+        return response
     }
     
     func userExpressedCheckBalanceIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "", answer: "", followUpQuestion: "")
+        // (re-use the same code)
+        // the state might stay the same, but still a new instance is created
+        let (newState, response) = CheckBalanceDstState.from(
+            probability: 1.0,    // (whatever is the intent probability, we are already in the CheckBalance state)
+            entities: entities,
+            previousState: self,
+            appContext: self.appContext
+        )
+        
+        if let newState = newState {
+            stateChanger.changeDstState(to: newState)
+        }
+        
+        return response
     }
     
     func userExpressedCheckTransactionsIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {

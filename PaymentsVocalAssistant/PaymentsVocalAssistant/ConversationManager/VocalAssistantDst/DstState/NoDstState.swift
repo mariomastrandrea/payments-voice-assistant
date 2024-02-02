@@ -8,6 +8,10 @@
 import Foundation
 
 class NoDstState: DstState {
+    var description: String {
+        return "NoDstState"
+    }
+
     private static let defaultStart = "How can I help you?"
     var lastResponse: VocalAssistantResponse
     
@@ -25,7 +29,7 @@ class NoDstState: DstState {
         self.lastResponse = .justAnswer(answer: startConversationMessage, followUpQuestion: NoDstState.defaultStart)
     }
     
-    func userExpressedNoneIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
+    func userExpressedNoneIntent(entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
         // state does not change -> wait for an expressed intent
         let response = VocalAssistantResponse.justAnswer(
             answer: DefaultVocalAssistantConfig.DST.intentNotChosenResponse,
