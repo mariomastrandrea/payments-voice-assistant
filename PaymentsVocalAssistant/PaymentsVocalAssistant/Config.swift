@@ -26,7 +26,7 @@ public enum DefaultVocalAssistantConfig {
     
     // answer box
     public static let defaultAssistantAnswerTextColor = Color.primary
-    public static let defaultAssistantAnswerBoxBackground = Color.secondary.opacity(0.1)
+    public static let defaultAssistantAnswerBoxBackground = Color.gray
     
     // rec button
     public static let defaultRecButtonImageName = "mic.fill"

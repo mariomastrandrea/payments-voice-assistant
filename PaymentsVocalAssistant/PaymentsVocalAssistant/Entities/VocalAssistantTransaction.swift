@@ -22,7 +22,15 @@ public struct VocalAssistantTransaction: CustomStringConvertible {
     public let date: Date
     
     public var description: String {
-        return "\(self.amount) \(self.amount.value < 0 ? "to" : "from") \(self.contact) - \(self.date) - \(self.bankAccount)"
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let dateString = dateFormatter.string(from: self.date)
+        
+        let hourFormatter = DateFormatter()
+        hourFormatter.dateFormat = "HH:mm"
+        let hourString = hourFormatter.string(from: self.date)
+        
+        return "\(self.amount) \(self.amount.value < 0 ? "to" : "from") \(self.contact) - on \(dateString) at \(hourString) - \(self.bankAccount)"
     }
     
     

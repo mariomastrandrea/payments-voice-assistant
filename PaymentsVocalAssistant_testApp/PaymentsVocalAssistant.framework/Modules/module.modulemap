@@ -1,0 +1,4 @@
+framework module PaymentsVocalAssistant {
+  header "PaymentsVocalAssistant-Swift.h"
+  requires objc
+}

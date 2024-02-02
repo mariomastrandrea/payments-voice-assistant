@@ -34,7 +34,7 @@ class SpeechSynthesizer {
         
         // Configure the utterance's properties here if needed
         utterance.voice = AVSpeechSynthesisVoice(language: self.language)
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Float(1.05)
         
         // Start speaking
         self.speechSynthesizer.speak(utterance)

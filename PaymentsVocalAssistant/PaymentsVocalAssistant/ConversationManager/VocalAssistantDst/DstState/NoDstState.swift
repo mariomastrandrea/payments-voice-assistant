@@ -56,8 +56,21 @@ class NoDstState: DstState {
     }
     
     func userExpressedCheckTransactionsIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "", answer: "", followUpQuestion: "")
+        let (newState, response) = CheckTransactionsDstState.from(
+            probability: probability,
+            entities: entities,
+            previousState: self,
+            appContext: self.appContext
+        )
+        
+        if let newState = newState {
+            stateChanger.changeDstState(to: newState)
+        }
+        else {
+            self.lastResponse = response
+        }
+        
+        return response
     }
     
     func userExpressedSendMoneyIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
