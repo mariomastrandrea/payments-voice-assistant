@@ -205,7 +205,7 @@ class CheckBalanceDstState: DstState {
         // (re-use the same code)
         // the state might stay the same, but still a new instance is created
         let (newState, response) = CheckBalanceDstState.from(
-            probability: 1.0,    // (whatever is the intent probability, we are already in the CheckBalance state)
+            probability: probability,
             entities: entities,
             previousState: self,
             appContext: self.appContext
@@ -214,13 +214,29 @@ class CheckBalanceDstState: DstState {
         if let newState = newState {
             stateChanger.changeDstState(to: newState)
         }
+        else {
+            self.lastResponse = response
+        }
         
         return response
     }
     
     func userExpressedCheckTransactionsIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "", answer: "", followUpQuestion: "")
+        let (newState, response) = CheckTransactionsDstState.from(
+            probability: probability,
+            entities: entities,
+            previousState: self,
+            appContext: self.appContext
+        )
+        
+        if let newState = newState {
+            stateChanger.changeDstState(to: newState)
+        }
+        else {
+            self.lastResponse = response
+        }
+        
+        return response
     }
     
     func userExpressedSendMoneyIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {

@@ -88,6 +88,12 @@ extension Array where Element: Comparable {
     }
 }
 
+extension Collection {
+    subscript (safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}
+
 extension String {
     var isNotEmpty: Bool {
         return !self.isEmpty

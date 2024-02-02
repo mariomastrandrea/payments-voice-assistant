@@ -34,8 +34,7 @@ class CheckTransactionsDstState: DstState {
         probability: Float32,
         entities: [PaymentsEntity],
         previousState: DstState,
-        appContext: AppContext,
-        comingFromSameState: Bool = false
+        appContext: AppContext
     ) -> (state: CheckTransactionsDstState?, firstResponse: VocalAssistantResponse) {
         // look for any bank(s) and user(s) entities
         let bankEntities = entities.filter({ $0.type == .bank })
@@ -131,28 +130,142 @@ class CheckTransactionsDstState: DstState {
             )
             
             // return the unsure state
+            let unsureState = UnsureCheckTransactionsDstState(
+                lastResponse: response,
+                previousState: previousState,
+                possibleBankAccount: selectedBankAccount,
+                possibleContact: selectedContact,
+                appContext: appContext
+            )
             
+            return (unsureState, response)
         }
         
+        // * every specified info is 'sure' here *
+        // now look for matching entities
         
+        var matchingBankAccounts: [VocalAssistantBankAccount] = []
+        var matchingContacts: [VocalAssistantContact] = []
         
-        // TODO: implement method
-        return (nil, .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo"))
+        if let possibleBankAccount = selectedBankAccount {
+            // the bank account has been mentioned
+            matchingBankAccounts = appContext.userBankAccounts.filter { bankAccount in
+                bankAccount.match(with: possibleBankAccount.reconstructedEntity)
+            }
+        }
+        
+        if let possibleContact = selectedContact {
+            // the contact has been mentioned
+            matchingContacts = appContext.userContacts.keepAndOrderJustTheOnesSimilar(to: possibleContact.reconstructedEntity)
+        }
+        
+        // (priority to the contacts)
+        
+        if matchingContacts.count > 1 {
+            // more than one contact matched -> create state and ask to choose one
+            let response: VocalAssistantResponse = .chooseContact(among: matchingContacts)
+            
+            // save the bank account only if just one matches
+            let eventualMatchingBankAccount = matchingBankAccounts.count == 1 ? matchingBankAccounts[0] : nil
+            
+            let newState = CheckTransactionsDstState(firstResponse: response, appContext: appContext, bankAccount: eventualMatchingBankAccount)
+            
+            return (newState, response)
+        }
+        
+        if matchingBankAccounts.count > 1 {
+            // more than one bank account matched -> create state and ask to choose one
+            let response: VocalAssistantResponse = .chooseBankAccount(among: matchingBankAccounts)
+            
+            // save the contact only if just one matches
+            let eventualMatchingContact = matchingContacts.count == 1 ? matchingContacts[0] : nil
+            
+            let newState = CheckTransactionsDstState(firstResponse: response, appContext: appContext, contact: eventualMatchingContact)
+            
+            return (newState, response)
+        }
+        
+        // here we can proceed with the in-app operation
+        
+        var matchingNotFoundMessages = [String]()
+        
+        if selectedContact != nil && matchingContacts.isEmpty {
+            matchingNotFoundMessages.append("I didn't find any contact matching your request")
+        }
+        
+        if selectedBankAccount != nil && matchingBankAccounts.isEmpty {
+            matchingNotFoundMessages.append("I didn't find any bank account matching your request")
+        }
+        
+        var matchingNotFoundMessage = matchingNotFoundMessages.joined(separator: " and ")
+        if matchingNotFoundMessage.isNotEmpty { matchingNotFoundMessage += "." }
+        
+        let eventualMatchingBankAccount = matchingBankAccounts[safe: 0]
+        let eventualMatchingContact = matchingContacts[safe: 0]
+        
+        // create check transaction operation response and create corresponding state
+        let response: VocalAssistantResponse = .checkTransactionsOperation(
+            bankAccount: eventualMatchingBankAccount,
+            contact: eventualMatchingContact,
+            preAnswer: matchingNotFoundMessage
+        )
+        
+        let newState = CheckTransactionsDstState(
+            firstResponse: response,
+            appContext: appContext,
+            bankAccount: eventualMatchingBankAccount,
+            contact: eventualMatchingContact
+        )
+        
+        return (newState, response)
     }
     
     func userExpressedNoneIntent(entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+        // (the checkTransactions intent is not waiting for any entity to be specified)
+        let response: VocalAssistantResponse = .justAnswer(
+            answer: "Sorry, I didn't quite understand.",
+            followUpQuestion: self.lastResponse.followUpQuestion
+        )
+        self.lastResponse = response
+        return response
     }
     
     func userExpressedCheckBalanceIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+        let (newCheckBalanceState, response) = CheckBalanceDstState.from(
+            probability: probability,
+            entities: entities,
+            previousState: self,
+            appContext: self.appContext
+        )
+        
+        if let newState = newCheckBalanceState {
+            stateChanger.changeDstState(to: newState)
+        }
+        else {
+            self.lastResponse = response
+        }
+        
+        return response
     }
     
     func userExpressedCheckTransactionsIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+        // (re-use the same code)
+        // the state might stay the same, but still a new instance is created
+        let (newState, response) = CheckTransactionsDstState.from(
+            probability: probability,
+            entities: entities,
+            previousState: self,
+            appContext: self.appContext
+        )
+        
+        if let newState = newState {
+            stateChanger.changeDstState(to: newState)
+        }
+        else {
+            self.lastResponse = response
+        }
+        
+        return response
     }
     
     func userExpressedSendMoneyIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
@@ -166,12 +279,20 @@ class CheckTransactionsDstState: DstState {
     }
     
     func userExpressedYesIntent(probability: Float32, stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+        let response: VocalAssistantResponse = .justAnswer(
+            answer: "Sorry, I didn't quite understand.",
+            followUpQuestion: self.lastResponse.followUpQuestion
+        )
+        self.lastResponse = response
+        return response
     }
     
     func userExpressedNoIntent(probability: Float32, stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+        let response: VocalAssistantResponse = .justAnswer(
+            answer: "Sorry, I didn't quite understand.",
+            followUpQuestion: self.lastResponse.followUpQuestion
+        )
+        self.lastResponse = response
+        return response
     }
 }

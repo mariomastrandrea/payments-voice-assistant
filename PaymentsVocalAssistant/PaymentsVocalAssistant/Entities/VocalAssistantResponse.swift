@@ -66,8 +66,8 @@ public enum VocalAssistantResponse {
                 bankAccount: bankAccount,
                 contact: contact
             ),
-            successMessage: "\(preAnswer == nil ? "" : "\(preAnswer!) ")Here are your recent transactions:\n{transactions}\n",
-            failureMessage: "I'm sorry, but I encountered an unexpected error while retrieving your recent transactions.",
+            successMessage: "\(preAnswer == nil ? "" : "\(preAnswer!) ")Here are your recent transactions\(bankAccount == nil ? "" : " with your \(bankAccount!.name) account")\(contact == nil ? "" : " involving \(contact!.description)"):\n{transactions}\n",
+            failureMessage: "I'm sorry, but I encountered an unexpected error while retrieving your recent transactions\(bankAccount == nil ? "" : " with your \(bankAccount!.name) account")\(contact == nil ? "" : " involving \(contact!.description)").",
             answer: "",
             followUpQuestion: "Is there anything else I can do for you?"
         )
@@ -78,6 +78,14 @@ public enum VocalAssistantResponse {
             bankAccounts: bankAccounts,
             answer: "I've found multiple bank accounts that can match your request.",
             followUpQuestion: "Which account do you mean?"
+        )
+    }
+    
+    static func chooseContact(among contacts: [VocalAssistantContact]) -> Self {
+        return .askToChooseContact(
+            contacts: contacts,
+            answer: "I've found multiple contacts matching your request.",
+            followUpQuestion: "Who do you mean?"
         )
     }
 }

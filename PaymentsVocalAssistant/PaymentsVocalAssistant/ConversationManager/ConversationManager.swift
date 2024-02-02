@@ -85,7 +85,7 @@ public class ConversationManager {
                     answer = failureMessage
                 }
                 
-            case .checkLastTransactions(let bankAccount, let contact, let successMessage, let failureMessage):
+            case .checkLastTransactions(let bankAccount, let contact):
                 do {
                     let transactions = try await self.appDelegate.performInAppCheckLastTransactionsOperation(for: bankAccount, involving: contact)
                     if transactions.isEmpty {
