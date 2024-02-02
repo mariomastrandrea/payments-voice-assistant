@@ -8,7 +8,7 @@
 import Foundation
 
 /** Object representing a Currency for the `PaymentsVocalAssistant` */
-public struct VocalAssistantCurrency {
+public struct VocalAssistantCurrency: CustomStringConvertible {
     /** Unique id representing the currency */
     public let id: String
     
@@ -17,6 +17,11 @@ public struct VocalAssistantCurrency {
     
     /** List of possible names representing the same currency */
     public let literals: [String]
+    
+    public var description: String {
+        return self.id
+    }
+    
     
     public init(id: String, symbols: [String], literals: [String]) {
         self.id = id

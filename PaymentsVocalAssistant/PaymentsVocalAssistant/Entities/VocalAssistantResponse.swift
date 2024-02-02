@@ -22,7 +22,7 @@ public enum VocalAssistantResponse {
     case askToChooseBankAccount(bankAccounts: [VocalAssistantBankAccount], answer: String, followUpQuestion: String)
     
     /** The user requested (and eventually confirmed) a specific in-app operation which now has to be performed   */
-    case performInAppOperation(userIntent: UserIntentFrame, answer: String, followUpQuestion: String)
+    case performInAppOperation(userIntent: UserIntentFrame, successMessage: String, failureMessage: String, answer: String, followUpQuestion: String)
     
     var answer: String {
         switch self {
@@ -30,7 +30,7 @@ public enum VocalAssistantResponse {
         case .justAnswer(let answer, _): return answer
         case .askToChooseContact(_, let answer, _): return answer
         case .askToChooseBankAccount(_, let answer, _): return answer
-        case .performInAppOperation(_, let answer, _): return answer
+        case .performInAppOperation(_, _, _, let answer, _): return answer
         }
     }
     
@@ -40,16 +40,11 @@ public enum VocalAssistantResponse {
         case .justAnswer(_, let followUpQuestion): return followUpQuestion
         case .askToChooseContact(_, _, let followUpQuestion): return followUpQuestion
         case .askToChooseBankAccount(_, _, let followUpQuestion): return followUpQuestion
-        case .performInAppOperation(_, _, let followUpQuestion): return followUpQuestion
+        case .performInAppOperation(_, _, _, _, let followUpQuestion): return followUpQuestion
         }
     }
     
     var completeAnswer: String {
-        // in case of app operation, just return the answer, cause the follow up question must be returned only after the operation is performed, either successfully or not
-        if case .performInAppOperation = self {
-            return self.answer
-        }
-        
-        return self.answer + " " + self.followUpQuestion
+        return (self.answer + " " + self.followUpQuestion).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

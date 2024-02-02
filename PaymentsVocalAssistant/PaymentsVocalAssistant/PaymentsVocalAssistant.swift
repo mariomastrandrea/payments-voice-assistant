@@ -58,6 +58,7 @@ public class PaymentsVocalAssistant {
     }
     
     /** Return the singleton instance of the Vocal Assistant.
+        - parameter appContext: object enclosing the app context's entities which might be referred by the user in the conversation
      
         If this is the first time the method is called, it instantiates and initializes the
         Vocal Assistant with its subcomponents, so this call might take a long time */
@@ -112,14 +113,17 @@ public class PaymentsVocalAssistant {
     }
     
     /**
-     Create a new conversation and get the corresponding dialogue manager, providing the user's app context
-     - parameter appContext: object enclosing the app context's entities which might be referred by the user in the conversation
-
+     Create a new conversation and get the corresponding dialogue manager
+     - parameter startConversationMessage: the default message used by the vocal assistant to start the conversation
+     - parameter defaultErrorMessage: the default message used by the vocal assistant when an unexpected error occurs
+     - parameter appDelegate: the object responsible of performing the in-app operations requested by the user
+     
      Call this method each time the user is starting a new conversation
      */
     public func newConversation(
         withMessage startConversationMessage: String,
-        andDefaultErrorMessage defaultErrorMessage: String
+        andDefaultErrorMessage defaultErrorMessage: String,
+        appDelegate: PaymentsVocalAssistantDelegate
     ) -> ConversationManager {
         // create a new DST dependency to manage the new conversation
         let dst = VocalAssistantDst(
@@ -133,6 +137,7 @@ public class PaymentsVocalAssistant {
             speechRecognizer: self.speechRecognizer,
             dst: dst,
             speechSyntesizer: self.speechSynthesizer,
+            appDelegate: appDelegate,
             defaultErrorMessage: defaultErrorMessage
         )
     }

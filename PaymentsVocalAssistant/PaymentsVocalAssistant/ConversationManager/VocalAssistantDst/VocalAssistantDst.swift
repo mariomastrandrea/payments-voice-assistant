@@ -52,8 +52,12 @@ public class VocalAssistantDst: DstStateChanger {
                 followUpQuestion: self.currentState.lastResponse.followUpQuestion
             )
         }
-        
+                
         let prediction = recognitionResult.success!
+        
+        logSuccess("Predicted intent: \(prediction.predictedIntent.type) (\(prediction.predictedIntent.probability))")
+        logSuccess("Predicted entities: [\(prediction.predictedEntities.map { "\($0.reconstructedEntity) (\($0.type) - \($0.entityProbability))" }.joined(separator: ", "))]")
+
         
         switch prediction.predictedIntent.type {
         case .none:

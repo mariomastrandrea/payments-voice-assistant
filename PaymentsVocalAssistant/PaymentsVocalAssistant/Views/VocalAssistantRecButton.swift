@@ -61,9 +61,7 @@ struct VocalAssistantRecButton: View {
                 .onEnded { _ in
                     // this triggers when the *long* press starts (after min duration)
                     if !self.disabled {
-                        Task { @MainActor in
-                            longPressStartAction()
-                        }
+                        longPressStartAction()
                     }
                 }
                 .sequenced(
@@ -74,9 +72,7 @@ struct VocalAssistantRecButton: View {
                                 do {
                                     try await Task.sleep(nanoseconds: 500_000_000) // 0.5s
                                       
-                                    Task { @MainActor in
-                                        longPressEndAction()
-                                    }
+                                    longPressEndAction()
                                 } catch {
                                     // Handle cancellation or other errors
                                     logError("Task was unexpectedly cancelled or encountered an error")
