@@ -48,11 +48,11 @@ struct PaymentsVocalAssistant_testAppApp: App {
     
     private func initContactsAndBankAccounts() {
         Task {
-            var contacts = await self.fetchContacts()
+            let contacts = await self.fetchContacts()
             
             if let contacts = contacts {
                 Task { @MainActor in
-                    self.userContacts = Array(contacts.prefix(upTo: 10))
+                    self.userContacts = contacts
                     self.contactsInitializationCompleted = true
                 }
             }

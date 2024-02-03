@@ -6,9 +6,9 @@ import re
 inputFile = open("intents.csv", "r")
 outputFile = open("result.csv", "w")
 
-first_name_placeholder = "{name}"
-surname_placeholder = "{surname}"
-bank_placeholder = "{bank}"
+first_name_placeholder = "<name>"
+surname_placeholder = "<surname>"
+bank_placeholder = "<bank>"
 
 for i,line in enumerate(inputFile):
     if i % 1000 == 0:

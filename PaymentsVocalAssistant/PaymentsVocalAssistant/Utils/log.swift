@@ -58,6 +58,7 @@ func logSuccess(_ messages: String...) {
 
 func logElapsedTimeInMs<T, E>(
     of operationName: String,
+    type: LogType = .info,
     since: Date? = nil,
     _ operation: () -> Result<T, E>
 ) -> Result<T, E> where E: Error {
@@ -78,7 +79,36 @@ func logElapsedTimeInMs<T, E>(
     if result.isSuccess {
         let tf = Date()
         let elapsedMs = 1000.0 * tf.timeIntervalSince(t0)
-        log("Elapsed time for \(operationName): \(elapsedMs) ms", type: .info)
+        log("Elapsed time for \(operationName): \(elapsedMs) ms", type: type)
+    }
+    
+    return result
+}
+
+func asyncLogElapsedTimeInMs<T, E>(
+    of operationName: String,
+    type: LogType = .info,
+    since: Date? = nil,
+    _ operation: () async -> Result<T, E>
+) async -> Result<T, E> where E: Error {
+    
+    let t0: Date
+    
+    if let since = since {
+        t0 = since
+    }
+    else {
+        t0 = Date()
+    }
+    
+    // execute operation
+    let result = await operation()
+        
+    // log elapsed time only if operation has been successfully executed
+    if result.isSuccess {
+        let tf = Date()
+        let elapsedMs = 1000.0 * tf.timeIntervalSince(t0)
+        log("Elapsed time for \(operationName): \(elapsedMs) ms", type: type)
     }
     
     return result

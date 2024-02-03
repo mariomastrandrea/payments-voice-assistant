@@ -11,7 +11,7 @@ import Foundation
     It represent the higher interface to interact with the Vocal Assistant, recording and provide it a speech, and playing the response */
 public class ConversationManager {
     private let speechRecognizer: SpeechRecognizer
-    private let dst: VocalAssistantDst
+    internal let dst: VocalAssistantDst
     private let speechSyntesizer: SpeechSynthesizer
     private let appDelegate: PaymentsVocalAssistantDelegate
     private let defaultErrorMessage: String

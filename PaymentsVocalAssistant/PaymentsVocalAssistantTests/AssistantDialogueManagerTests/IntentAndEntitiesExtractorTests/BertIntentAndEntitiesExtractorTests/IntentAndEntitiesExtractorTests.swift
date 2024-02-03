@@ -13,12 +13,12 @@ final class IntentAndEntitiesExtractorTests: XCTestCase {
     var vocalAssistant: PaymentsVocalAssistant!
     
     
-    override func setUpWithError() throws {
+    override func setUp() async throws {
         // disable flag
         self.originalLogFlagValue = GlobalConfig.enableLogs
         GlobalConfig.enableLogs = false
         
-        let vocalAssistant = PaymentsVocalAssistant.instance
+        let vocalAssistant = await PaymentsVocalAssistant.instance(appContext: AppContext(userContacts: [AppDelegateStub.antonioRossiContact, AppDelegateStub.giuseppeVerdiContact], userBankAccounts: [AppDelegateStub.futureBankAccount, AppDelegateStub.topBankAccount]))
         XCTAssertNotNil(vocalAssistant, "Failed to initialize PaymentsVocalAssistant")
         self.vocalAssistant = vocalAssistant!
     }
@@ -29,9 +29,9 @@ final class IntentAndEntitiesExtractorTests: XCTestCase {
     }
     
     private func createExtractedIntentAndEntitiesTest(for sample: ExtractorSample) {
-        let dialogueManager = self.vocalAssistant.newConversation()
+        let dialogueManager = self.vocalAssistant.newConversation(withMessage: "", andDefaultErrorMessage: "", appDelegate: AppDelegateStub())
 
-        let intentAndEntitiesExtractor = dialogueManager.intentAndEntitiesExtractor
+        let intentAndEntitiesExtractor = dialogueManager.dst.intentAndEntitiesExtractor
         let recognitionOutput = intentAndEntitiesExtractor.recognize(from: sample.text)
         XCTAssert(recognitionOutput.isSuccess)
         
@@ -46,9 +46,9 @@ final class IntentAndEntitiesExtractorTests: XCTestCase {
     
     func testEntities() throws {
         let sample = ExampleText._3
-        let dialogueManager = self.vocalAssistant.newConversation()
+        let conversationManager = self.vocalAssistant.newConversation(withMessage: "", andDefaultErrorMessage: "", appDelegate: AppDelegateStub())
 
-        let intentAndEntitiesExtractor = dialogueManager.intentAndEntitiesExtractor
+        let intentAndEntitiesExtractor = conversationManager.dst.intentAndEntitiesExtractor
         let recognitionOutput = intentAndEntitiesExtractor.recognize(from: sample.text)
         XCTAssert(recognitionOutput.isSuccess)
         

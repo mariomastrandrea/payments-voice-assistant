@@ -26,24 +26,39 @@ class CustomLMBuilder {
         andTemplatesFromCsv fileName: String
     ) -> Bool {
         guard let sentencesTemplates = Self.importDataset(fromCsv: fileName) else { return false }
+        let multiplier = 3  // generate 3 sentences from each template
+        
+        // manually substitute entities placeholders with user's contacts names and banks
+        let filledSentencesWithCustomNames = sentencesTemplates.flatMap { template in
+            (0..<multiplier).map { _ in
+                randomlyFill(template: template, withNames: names, surnames: surnames, andBanks: banks)
+            }
+        }
+        
+        logInfo("Filled templates for Custom LM: #\(filledSentencesWithCustomNames.count)")
         
         self.customLM = SFCustomLanguageModelData(locale: self.locale, identifier: SpeechConfig.CustomLM.identifier, version: "1.0")
         {
-            SFCustomLanguageModelData.PhraseCountsFromTemplates(classes: [
-                "name": names,
-                "surname": surnames,
-                "bank": banks
-            ]) {
-                // generate one sentence from each template, choosing among the specified names, surnames and bank names
-                for template in sentencesTemplates {
-                    SFCustomLanguageModelData.TemplatePhraseCountGenerator.Template(
-                        template, count: 1
-                    )
-                }
+            // use each filled template to customize the Custom Language model
+            for sentence in filledSentencesWithCustomNames {
+                SFCustomLanguageModelData.PhraseCount(phrase: sentence, count: 1)
             }
         }
         
         return true
+    }
+    
+    private func randomlyFill(template: String, withNames names: [String], surnames: [String], andBanks banks: [String]) -> String {
+        // choose random name, surname and bank. Name and surname are chosen from the same contact
+        let randomNameIndex = names.indices.randomElement() ?? 0
+        let randomName = names[safe: randomNameIndex] ?? "John"
+        let randomSurname = surnames[safe: randomNameIndex] ?? "Doe"
+        let randomBank = banks.randomElement() ?? "Top Bank"
+        
+        let filledSentence = template.replacingOccurrences(of: "<name>", with: randomName)
+                                     .replacingOccurrences(of: "<surname>", with: randomSurname)
+                                     .replacingOccurrences(of: "<bank>", with: randomBank)
+        return filledSentence
     }
     
     private static func importDataset(fromCsv fileName: String, atColumn col: Int = 0) -> [String]? {
@@ -74,7 +89,7 @@ class CustomLMBuilder {
         return sentences
     }
     
-    func export(fileName modelFileName: String) async -> URL? {
+    func export(fileName modelFileName: String) async -> Result<URL, SpeechRecognizerError> {
         do {
             // create url to export the custom model
             let modelUrl = try FileManager.default.url(
@@ -88,11 +103,10 @@ class CustomLMBuilder {
             try await self.customLM?.export(to: modelUrl)
             
             logSuccess("* exported model at: \(modelUrl.absoluteString)")
-            return modelUrl
+            return .success(modelUrl)
         }
         catch let error {
-            logError("Error: custom LM export failed.\n\(error.localizedDescription)")
-            return nil
+            return .failure(.customLMnotExported(localizedDescription: error.localizedDescription))
         }
     }
 }

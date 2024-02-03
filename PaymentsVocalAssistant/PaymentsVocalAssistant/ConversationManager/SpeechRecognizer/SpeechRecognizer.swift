@@ -10,26 +10,32 @@ import Speech
 import AVFoundation
 import Contacts
 
-/// A helper for transcribing speech to text using SFSpeechRecognizer and AVAudioEngine.
-class SpeechRecognizer {
-    enum SpeechRecognizerError: Error {
-        case nilRecognizer
-        case notAuthorizedToRecognize
-        case notPermittedToRecord
-        case recognizerIsUnavailable
-        case notSupportedOnDeviceRecognition
-        
-        var message: String {
-            switch self {
-            case .nilRecognizer: return "Can't initialize speech recognizer"
-            case .notAuthorizedToRecognize: return "Not authorized to recognize speech"
-            case .notPermittedToRecord: return "Not permitted to record audio"
-            case .recognizerIsUnavailable: return "Recognizer is unavailable"
-            case .notSupportedOnDeviceRecognition: return "On-device recognition not supported by the Recognizer"
-            }
+enum SpeechRecognizerError: Error {
+    case nilRecognizer
+    case notAuthorizedToRecognize
+    case notPermittedToRecord
+    case recognizerIsUnavailable
+    case notSupportedOnDeviceRecognition
+    case customLMnotCreated
+    case customLMnotExported(localizedDescription: String)
+    case customLMnotPrepared(localizedDescription: String)
+    
+    var message: String {
+        switch self {
+        case .nilRecognizer: return "Can't initialize speech recognizer"
+        case .notAuthorizedToRecognize: return "Not authorized to recognize speech"
+        case .notPermittedToRecord: return "Not permitted to record audio"
+        case .recognizerIsUnavailable: return "Recognizer is unavailable"
+        case .notSupportedOnDeviceRecognition: return "On-device recognition not supported by the Recognizer"
+        case .customLMnotCreated: return "Failed Custom Language model creation from templates and user app context"
+        case .customLMnotExported(let localizedDescription): return "Failed Custom LM export.\n\(localizedDescription)"
+        case .customLMnotPrepared(let localizedDescription): return "An error occurred preparing Custom data Model: \(localizedDescription)"
         }
     }
-    
+}
+
+/// A helper for transcribing speech to text using SFSpeechRecognizer and AVAudioEngine.
+class SpeechRecognizer {
     var bestTranscript: String = ""
     var transcripts: [String] = []
     var errorOccurred: Bool = false
@@ -80,39 +86,46 @@ class SpeechRecognizer {
     func createCustomLM(names: [String], surnames: [String], banks: [String]) async {
         // Custom Language Model for Speech Recognition is only available from iOS 17
         if #available(iOS 17, *) {
-            // create the Custom Language Model builder
-            let lmBuilder = CustomLMBuilder(locale: Locale(identifier: "en_US"))
             
-            let t0 = Date()
+            let customLMcreationResult = logElapsedTimeInMs(
+                of: "Custom Language model successfully created from templates and user's app context",
+                type: .success
+            ) {
+                // create the Custom Language Model builder
+                let lmBuilder = CustomLMBuilder(locale: Locale(identifier: "en_US"))
+                
+                // import data from the csv
+                let dataAdded = lmBuilder.build(
+                    withNames: names,
+                    surnames: surnames,
+                    banks: banks,
+                    andTemplatesFromCsv: SpeechConfig.CustomLM.templatesFileName
+                )
+                
+                return dataAdded ? .success(lmBuilder) : .failure(SpeechRecognizerError.customLMnotCreated)
+            }
             
-            // import data from the csv
-            let dataAdded = lmBuilder.build(
-                withNames: names,
-                surnames: surnames,
-                banks: banks,
-                andTemplatesFromCsv: SpeechConfig.CustomLM.templatesFileName
-            )
-            
-            if !dataAdded {
-                let errorMessage = "Error during custom data insert"
-                logError(errorMessage)
+            guard customLMcreationResult.isSuccess else {
+                logError(customLMcreationResult.failure!.message)
                 return
             }
             
-            let t1 = Date()
-            let elapsedMs = Int(t1.timeIntervalSince(t0) * 1000.0)
-            logSuccess("Custom Language Model successfully created from the templates and the user app context in \(elapsedMs) ms")
+            let lmBuilder = customLMcreationResult.success!
             
-            // export Custom LM data into a file
-            let customModelUrl = await lmBuilder.export(fileName: SpeechConfig.CustomLM.modelFileName)
+            let customLMexportResult = await asyncLogElapsedTimeInMs(
+                of: "Custom Language model successfully export into .bin",
+                type: .success
+            ) {
+                // export Custom LM data into a file
+                await lmBuilder.export(fileName: SpeechConfig.CustomLM.modelFileName)
+            }
             
-            guard let customModelUrl = customModelUrl else {
-                let errorMessage = "An error occurred exporting custom LM"
-                logError(errorMessage)
+            guard customLMexportResult.isSuccess else {
+                logError(customLMexportResult.failure!.message)
                 return
             }
             
-            logSuccess("Custom Language Model successfully exported into .bin")
+            let customModelUrl = customLMexportResult.success!
             
             // * now import again the Custom LM from the exported file and
             //   prepare the custom language model
@@ -122,27 +135,37 @@ class SpeechRecognizer {
                 languageModel: customModelUrl
             )
             
-            do {
-                let t0 = Date()
+            let customLMpreparationResult = await asyncLogElapsedTimeInMs(
+                of: "Custom Language Model successfully prepared",
+                type: .success
+            ) {
+                let result: Result<Void, SpeechRecognizerError>
                 
-                // Prepare the Custom Language Model for the Speech Recognizer
-                try await SFSpeechLanguageModel.prepareCustomLanguageModel(
-                    for: customModelUrl,
-                    clientIdentifier: customDataId,
-                    configuration: customLMConfig
-                )
+                do {
+                    // Prepare the Custom Language Model for the Speech Recognizer
+                    try await SFSpeechLanguageModel.prepareCustomLanguageModel(
+                        for: customModelUrl,
+                        clientIdentifier: customDataId,
+                        configuration: customLMConfig
+                    )
+                    
+                    // save custom LM configuration
+                    self.customLMconfig = customLMConfig
+                    
+                    result = .success(())
+                }
+                catch let error {
+                    result = .failure(
+                        SpeechRecognizerError.customLMnotPrepared(localizedDescription: error.localizedDescription)
+                    )
+                }
                 
-                let t1 = Date()
-                let timeToPrepareCustomLM = t1.timeIntervalSince(t0)
-                let ms = Int(timeToPrepareCustomLM * 1000.0)
-                
-                // save custom LM configuration
-                self.customLMconfig = customLMConfig
-                
-                logSuccess("Custom Language Model successfully prepared in \(ms) ms")
+                return result
             }
-            catch let error {
-                logError("An error occurred preparing custom data model: \(error.localizedDescription)")
+            
+            guard customLMpreparationResult.isSuccess else {
+                logError(customLMpreparationResult.failure!.message)
+                return
             }
         }
         else {
