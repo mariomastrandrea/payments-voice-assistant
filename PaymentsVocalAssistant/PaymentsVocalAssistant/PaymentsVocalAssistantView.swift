@@ -12,6 +12,7 @@ public struct PaymentsVocalAssistantView: View {
     @State private var conversationManager: ConversationManager!
     @State private var assistantAnswerText: String = ""
     @State private var isAssistantInitialized: Bool = false
+    @State private var isRecordingInProgress: Bool = false
     
     // app state
     private let appContext: AppContext
@@ -19,7 +20,6 @@ public struct PaymentsVocalAssistantView: View {
     private let config: VocalAssistantCustomConfig
 
     
-
     public init(
         appContext: AppContext,
         appDelegate: PaymentsVocalAssistantDelegate,
@@ -31,54 +31,71 @@ public struct PaymentsVocalAssistantView: View {
     }
     
     public var body: some View {
-        VStack(alignment: .leading) {
-            VocalAssistantTitle(
-                self.config.title,
-                color: self.config.titleTextColor
-            ).onAppear {
-                self.initializeVocalAssistant()
-            }
-            
-            if !self.isAssistantInitialized {
-                VocalAssistantActivityIndicator()
-            }
-            else {
-                VocalAssistantAnswerBox(
-                    assistantAnswer: self.assistantAnswerText,
-                    textColor: self.config.assistantAnswerBoxTextColor,
-                    boxBackground: self.config.assistantAnswerBoxBackground
-                )
-            }
-                    
-            Spacer()
-            
-            // button to record user's speech
-            VocalAssistantRecButton(
-                disabled: !self.isAssistantInitialized,
-                imageName: self.config.recButtonImageName,
-                text: self.config.recButtonText,
-                textColor: self.config.recButtonForegroundColor,
-                fillColor: self.config.recButtonFillColor,
-                longPressStartAction: {
-                    self.conversationManager.startListening()
-                },
-                longPressEndAction: {
-                    Task {
-                        let assistantResponse = await self.conversationManager.processAndPlayResponse()
+        ZStack {
+            VStack(alignment: .leading) {
+                VocalAssistantTitle(
+                    self.config.title,
+                    color: self.config.titleTextColor
+                ).onAppear {
+                    self.initializeVocalAssistant()
+                }
+                
+                if !self.isAssistantInitialized {
+                    VocalAssistantActivityIndicator()
+                }
+                else {
+                    VocalAssistantAnswerBox(
+                        assistantAnswer: self.assistantAnswerText,
+                        textColor: self.config.assistantAnswerBoxTextColor,
+                        boxBackground: self.config.assistantAnswerBoxBackground
+                    )
+                }
+                
+                Spacer()
+                
+                // button to record user's speech
+                VocalAssistantRecButton(
+                    disabled: !self.isAssistantInitialized,
+                    imageName: self.config.recButtonImageName,
+                    text: self.config.recButtonText,
+                    textColor: self.config.recButtonForegroundColor,
+                    fillColor: self.config.recButtonFillColor,
+                    longPressStartAction: {
+                        self.conversationManager.startListening()
                         
                         Task { @MainActor in
-                            self.assistantAnswerText = assistantResponse.completeAnswer
+                            self.isRecordingInProgress = true
+                        }
+                    },
+                    longPressEndAction: {
+                        Task {
+                            let assistantResponse = await self.conversationManager.processAndPlayResponse()
                             
-                            // TODO: switch over the response and :
-                            // - make some views appear if user has to choose among accounts or among contacts,
-                            // - log/show error if there is an app error
+                            Task { @MainActor in
+                                self.isRecordingInProgress = false
+                                self.assistantAnswerText = assistantResponse.completeAnswer
+                                
+                                // TODO: switch over the response and :
+                                // - make some views appear if user has to choose among accounts or among contacts,
+                                // - log/show error if there is an app error
+                            }
                         }
                     }
-                }
-            )
+                )
+            }
+            .padding(.bottom, 20)
+            .background(self.config.backgroundColor)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            // microphone icon in overlay
+            if self.isRecordingInProgress {
+                OverlayMicrophone(
+                    imageName: self.config.recButtonImageName,
+                    backgroundColor: CustomColor.customGrayMic
+                )
+            }
         }
-        .padding(.bottom, 20)
-        .background(self.config.backgroundColor)
+        .animation(.easeInOut, value: self.isRecordingInProgress) // Animate the appearance/disappearance of the microphone overlay
     }
     
     private func initializeVocalAssistant() {

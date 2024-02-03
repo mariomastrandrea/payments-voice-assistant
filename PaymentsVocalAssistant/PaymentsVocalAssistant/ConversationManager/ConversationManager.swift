@@ -33,6 +33,9 @@ public class ConversationManager {
     }
     
     func startListening() {
+        // stop any previous speech of the SpeechSynthesizer
+        self.speechSyntesizer.stopSpeaking()
+        
         // start the speech recognizer
         self.speechRecognizer.startTranscribing()
         logInfo("Start recording...")

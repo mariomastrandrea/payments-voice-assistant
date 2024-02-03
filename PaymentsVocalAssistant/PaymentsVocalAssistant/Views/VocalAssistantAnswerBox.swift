@@ -32,5 +32,5 @@ struct VocalAssistantAnswerBox: View {
 }
 
 #Preview {
-    VocalAssistantAnswerBox(assistantAnswer: "Hi! How can I help you?", textColor: Color.primary, boxBackground: Color.secondary.opacity(0.1))
+    VocalAssistantAnswerBox(assistantAnswer: "Hi! How can I help you?", textColor: Color.primary, boxBackground: CustomColor.customGray)
 }

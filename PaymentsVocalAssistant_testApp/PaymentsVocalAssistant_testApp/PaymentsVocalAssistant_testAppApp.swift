@@ -85,8 +85,6 @@ struct PaymentsVocalAssistant_testAppApp: App {
                     if !number.isEmpty && !(name+surname).isEmpty {
                         let contact = VocalAssistantContact(id: number, firstName: name, lastName: surname)
                         contacts.append(contact)
-                        
-                        print("\(number) - \((name + " " + surname).trimmingCharacters(in: .whitespacesAndNewlines))")
                     }
                 }
                 

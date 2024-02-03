@@ -26,7 +26,7 @@ public enum DefaultVocalAssistantConfig {
     
     // answer box
     public static let defaultAssistantAnswerTextColor = Color.primary
-    public static let defaultAssistantAnswerBoxBackground = Color.secondary
+    public static let defaultAssistantAnswerBoxBackground = CustomColor.customGray
     
     // rec button
     public static let defaultRecButtonImageName = "mic.fill"
@@ -38,7 +38,7 @@ public enum DefaultVocalAssistantConfig {
     
     // sentences
     public static let defaultStartConversation = "Hi! I can assist you performing some money operations inside the app."
-    public static let defaultInitializationErrorMessage = "Sorry, an error occurred during my initialization, we apologize for the inconvenience. Exit and try again later."
+    public static let defaultInitializationErrorMessage = "Sorry, an error occurred during my initialization, we apologize for the inconvenience. Exit and try again later.\nIf the error persist, check on your System Preferences that this app has both 'Speech Recognition' and 'Microphone' permissions granted"
     public static let defaultErrorResponse = "Sorry, an error occurred processing your request. Let's try again."
     
     enum DST {

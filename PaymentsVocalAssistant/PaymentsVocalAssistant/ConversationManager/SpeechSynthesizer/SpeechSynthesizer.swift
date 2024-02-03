@@ -17,7 +17,15 @@ class SpeechSynthesizer {
         self.speechSynthesizer = AVSpeechSynthesizer()
     }
     
+    func stopSpeaking() {
+        // first stop any previous speech
+        self.speechSynthesizer.stopSpeaking(at: .word)
+    }
+    
     func speak(text: String) {
+        // first stop any previous speech
+        self.stopSpeaking()
+        
         do {
             // setup audio session
             let audioSession = AVAudioSession.sharedInstance()
@@ -35,6 +43,8 @@ class SpeechSynthesizer {
         // Configure the utterance's properties here if needed
         utterance.voice = AVSpeechSynthesisVoice(language: self.language)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Float(1.05)
+        
+        logInfo("Utterance  ->  Rate: \(utterance.rate)  -  Voice: \(utterance.voice?.name ?? "default")")
         
         // Start speaking
         self.speechSynthesizer.speak(utterance)
