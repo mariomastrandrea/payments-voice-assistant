@@ -19,7 +19,7 @@ class NoDstState: DstState {
     private let startConversationMessage: String
     
     var startSentence: String {
-        return self.startConversationMessage + " " + NoDstState.defaultStart
+        return (self.startConversationMessage + " " + NoDstState.defaultStart).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     init(appContext: AppContext, startConversationMessage: String) {
@@ -27,6 +27,12 @@ class NoDstState: DstState {
         self.startConversationMessage = startConversationMessage
         
         self.lastResponse = .justAnswer(answer: startConversationMessage, followUpQuestion: NoDstState.defaultStart)
+    }
+    
+    init(appContext: AppContext, firstResponse: VocalAssistantResponse) {
+        self.appContext = appContext
+        self.lastResponse = firstResponse
+        self.startConversationMessage = ""
     }
     
     func userExpressedNoneIntent(entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {

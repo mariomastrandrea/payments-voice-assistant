@@ -114,6 +114,20 @@ extension String {
                          range: NSRange(location: 0, length: self.utf16.count)) != nil
     }
     
+    func findMatchesOf(regex: String) -> [String] {
+        guard let regex = try? NSRegularExpression(pattern: regex) else { return [] }
+        
+        let matches = regex.matches(
+            in: self,
+            options: [],
+            range: NSRange(self.startIndex..., in: self)
+        ).map {
+            String(self[Range($0.range, in: self)!])
+        }
+        
+        return matches
+    }
+    
     func similarity(with literal: String) -> Double {
         if literal.isEmpty || self.isEmpty {
             return 0.0

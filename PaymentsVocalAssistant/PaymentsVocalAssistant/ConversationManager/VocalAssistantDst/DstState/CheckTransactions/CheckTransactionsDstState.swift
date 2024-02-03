@@ -14,18 +14,18 @@ class CheckTransactionsDstState: DstState {
     
     var startSentence: String = ""
     var lastResponse: VocalAssistantResponse
+    internal let appContext: AppContext
     
     // check transactions frame properties
     private let bankAccount: VocalAssistantBankAccount?
     private let contact: VocalAssistantContact?
-    internal let appContext: AppContext
     
     
     init(firstResponse: VocalAssistantResponse, appContext: AppContext, bankAccount: VocalAssistantBankAccount? = nil, contact: VocalAssistantContact? = nil) {
         self.lastResponse = firstResponse
+        self.appContext = appContext
         self.bankAccount = bankAccount
         self.contact = contact
-        self.appContext = appContext
     }
     
     internal static let threshold = DefaultVocalAssistantConfig.uncertaintyThreshold
@@ -279,20 +279,26 @@ class CheckTransactionsDstState: DstState {
     }
     
     func userExpressedYesIntent(probability: Float32, stateChanger: DstStateChanger) -> VocalAssistantResponse {
+        // task is already completed -> go back to NoDstState
         let response: VocalAssistantResponse = .justAnswer(
-            answer: "Sorry, I didn't quite understand.",
-            followUpQuestion: self.lastResponse.followUpQuestion
+            answer: "Ok.",
+            followUpQuestion: "Go ahead with your request, I'm here to help you."
         )
-        self.lastResponse = response
+        let newState = NoDstState(appContext: self.appContext, firstResponse: response)
+        stateChanger.changeDstState(to: newState)
+        
         return response
     }
     
     func userExpressedNoIntent(probability: Float32, stateChanger: DstStateChanger) -> VocalAssistantResponse {
+        // task is already completed -> go back to NoDstState
         let response: VocalAssistantResponse = .justAnswer(
-            answer: "Sorry, I didn't quite understand.",
-            followUpQuestion: self.lastResponse.followUpQuestion
+            answer: "Ok.",
+            followUpQuestion: "If you have any other request, I'm here to help you."
         )
-        self.lastResponse = response
+        let newState = NoDstState(appContext: self.appContext, firstResponse: response)
+        stateChanger.changeDstState(to: newState)
+        
         return response
     }
 }

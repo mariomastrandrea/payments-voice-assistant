@@ -14,10 +14,10 @@ class CheckBalanceDstState: DstState {
 
     var startSentence: String = ""
     var lastResponse: VocalAssistantResponse
+    internal let appContext: AppContext
     
     // check balance frame properties
     private let bankAccount: VocalAssistantBankAccount?
-    internal let appContext: AppContext
     
     init(firstResponse: VocalAssistantResponse, appContext: AppContext, bankAccount: VocalAssistantBankAccount? = nil) {
         self.lastResponse = firstResponse
@@ -250,6 +250,18 @@ class CheckBalanceDstState: DstState {
     }
     
     func userExpressedYesIntent(probability: Float32, stateChanger: DstStateChanger) -> VocalAssistantResponse {
+        if self.bankAccount != nil {
+            // task is already completed -> go back to NoDstState
+            let response: VocalAssistantResponse = .justAnswer(
+                answer: "Ok.",
+                followUpQuestion: "Go ahead with your request, I'm here to help you."
+            )
+            let newState = NoDstState(appContext: self.appContext, firstResponse: response)
+            stateChanger.changeDstState(to: newState)
+            
+            return response
+        }
+        
         let response: VocalAssistantResponse = .justAnswer(
             answer: "Sorry, I didn't quite understand.",
             followUpQuestion: self.lastResponse.followUpQuestion
@@ -259,6 +271,18 @@ class CheckBalanceDstState: DstState {
     }
     
     func userExpressedNoIntent(probability: Float32, stateChanger: DstStateChanger) -> VocalAssistantResponse {
+        if self.bankAccount != nil {
+            // task is already completed -> go back to NoDstState
+            let response: VocalAssistantResponse = .justAnswer(
+                answer: "Ok.",
+                followUpQuestion: "If you have any other request, I'm here to help you."
+            )
+            let newState = NoDstState(appContext: self.appContext, firstResponse: response)
+            stateChanger.changeDstState(to: newState)
+            
+            return response
+        }
+        
         let response: VocalAssistantResponse = .justAnswer(
             answer: "Sorry, I didn't quite understand.",
             followUpQuestion: self.lastResponse.followUpQuestion
