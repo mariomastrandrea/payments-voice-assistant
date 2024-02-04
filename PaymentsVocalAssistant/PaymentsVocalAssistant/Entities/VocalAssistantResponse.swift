@@ -54,7 +54,7 @@ public enum VocalAssistantResponse {
                 bankAccount: bankAccount
             ),
             successMessage: "Here is what I found: the balance of your \(bankAccount.name) account is {amount}.",
-            failureMessage: "I'm sorry, but I encountered an unexpected error while checking the balance.",
+            failureMessage: "I'm sorry, but I encountered an unexpected error while checking the balance of your \(bankAccount.name) account.",
             answer: "",
             followUpQuestion: "Is there anything else I can do for you?"
         )
@@ -73,11 +73,31 @@ public enum VocalAssistantResponse {
         )
     }
     
+    static func sendMoneyOperation(amount: VocalAssistantAmount, recipient: VocalAssistantContact, bankAccount: VocalAssistantBankAccount) -> Self {
+        return .performInAppOperation(
+            userIntent: .sendMoney(amount: amount, recipient: recipient, sourceAccount: bankAccount),
+            successMessage: "Your \(amount.descriptionWithoutSign) amount has been successfully sent to \(recipient) using your \(bankAccount.name) account",
+            failureMessage: "I'm sorry, but I encountered an unexpected error while sending \(amount.descriptionWithoutSign) to \(recipient) using your \(bankAccount.name) account. Reason: {errorMsg}",
+            answer: "",
+            followUpQuestion: "Is there anything else I can do for you?"
+        )
+    }
+    
+    static func requestMoneyOperation(amount: VocalAssistantAmount, sender: VocalAssistantContact, bankAccount: VocalAssistantBankAccount) -> Self {
+        return .performInAppOperation(
+            userIntent: .requestMoney(amount: amount, sender: sender, destinationAccount: bankAccount),
+            successMessage: "Your \(amount.descriptionWithoutSign) amount has been successfully requested from \(sender) using your \(bankAccount.name) account",
+            failureMessage: "I'm sorry, but I encountered an unexpected error while requesting \(amount.descriptionWithoutSign) from \(sender) using your \(bankAccount.name) account. Reason: {errorMsg}",
+            answer: "",
+            followUpQuestion: "Is there anything else I can do for you?"
+        )
+    }
+    
     static func chooseBankAccount(among bankAccounts: [VocalAssistantBankAccount]) -> Self {
         return .askToChooseBankAccount(
             bankAccounts: bankAccounts,
             answer: "I've found multiple bank accounts that can match your request.",
-            followUpQuestion: "Which account do you mean?"
+            followUpQuestion: "Which one do you mean?"
         )
     }
     
@@ -86,6 +106,20 @@ public enum VocalAssistantResponse {
             contacts: contacts,
             answer: "I've found multiple contacts matching your request.",
             followUpQuestion: "Who do you mean?"
+        )
+    }
+    
+    static func sendMoneyConfirmationQuestion(answer: String, amount: VocalAssistantAmount, recipient: VocalAssistantContact, sourceBankAccount: VocalAssistantBankAccount) -> Self {
+        return .justAnswer(
+            answer: answer,
+            followUpQuestion: "You are going to send a \(amount.descriptionWithoutSign) amount to \(recipient) using your \(sourceBankAccount.name) account.\nDo you want to confirm?"
+        )
+    }
+    
+    static func requestMoneyConfirmationQuestion(answer: String, amount: VocalAssistantAmount, sender: VocalAssistantContact, destinationBankAccount: VocalAssistantBankAccount) -> Self {
+        return .justAnswer(
+            answer: answer,
+            followUpQuestion: "You are going to request a \(amount.descriptionWithoutSign) amount from \(sender) using your \(destinationBankAccount.name) account.\nDo you want to confirm?"
         )
     }
 }

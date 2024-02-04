@@ -52,7 +52,7 @@ class CheckTransactionsDstState: DstState {
         
         if numConfidentUsers > 1 {
             // more than one user has been specified
-            exceedingEntitiesErrorMsg = exceedingEntitiesErrorMsg.isEmpty ? "Please specify at most one contact" : " and at most one contact"
+            exceedingEntitiesErrorMsg += exceedingEntitiesErrorMsg.isEmpty ? "Please specify at most one contact" : " and at most one contact"
         }
         
         if exceedingEntitiesErrorMsg.isNotEmpty {
@@ -63,7 +63,7 @@ class CheckTransactionsDstState: DstState {
                 // don't create state
                 let response: VocalAssistantResponse = .justAnswer(
                     answer: exceedingEntitiesErrorMsg,
-                    followUpQuestion: "How can I help you, again?"
+                    followUpQuestion: previousState.lastResponse.followUpQuestion
                 )
                 return (nil, response)
             }

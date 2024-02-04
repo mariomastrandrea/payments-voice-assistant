@@ -57,6 +57,10 @@ public struct VocalAssistantContact: CustomStringConvertible, Hashable {
     public static func == (lhs: VocalAssistantContact, rhs: VocalAssistantContact) -> Bool {
         return lhs.id == rhs.id
     }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.id)
+    }
 }
 
 internal extension Array where Element == VocalAssistantContact {

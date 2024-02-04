@@ -35,6 +35,10 @@ public struct VocalAssistantAmount: CustomStringConvertible {
         }
     }
     
+    public var descriptionWithoutSign: String {
+        return "\(self.currency.symbols[0])\(self.roundedAbs)"
+    }
+    
     public init(value: Double, currency: VocalAssistantCurrency) {
         self.value = value
         self.currency = currency

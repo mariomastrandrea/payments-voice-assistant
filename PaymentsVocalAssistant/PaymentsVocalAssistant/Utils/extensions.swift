@@ -52,6 +52,10 @@ extension Array {
     var isNotEmpty: Bool {
         return !self.isEmpty
     }
+    
+    var areMoreThanOne: Bool {
+        return self.count > 1
+    }
 }
 
 extension Array where Element: Comparable {
@@ -85,6 +89,32 @@ extension Array where Element: Comparable {
         }
         
         return indexOfMin
+    }
+}
+
+extension ArraySlice where Element == String {
+    func joinGrammatically() -> String {
+        if self.count < 2 {
+            return self.joined(separator: ", ")
+        }
+        
+        let numElements = self.count
+        let joined = self[0..<(numElements-1)].joined(separator: ", ") + " and " + self[numElements-1]
+                
+        return joined
+    }
+}
+
+extension Array where Element == String {
+    func joinGrammatically() -> String {
+        if self.count < 2 {
+            return self.joined(separator: ", ")
+        }
+        
+        let numElements = self.count
+        let joined = self[0..<(numElements-1)].joined(separator: ", ") + " and " + self[numElements-1]
+                
+        return joined
     }
 }
 

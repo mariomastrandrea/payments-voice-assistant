@@ -49,7 +49,7 @@ class UnsureCheckBalanceDstState: CheckBalanceDstState {
         if matchingBankAccounts.isEmpty {
             let response: VocalAssistantResponse = .justAnswer(
                 answer: "Ok, but I didn't find any bank account matching your request.",
-                followUpQuestion: "Which account do you want to check the balance of?"
+                followUpQuestion: "Which account do you want to check the balance of? Your bank accounts are: \(appContext.userBankAccounts.joined())"
             )
             // go to 'sure' CheckBalance state
             let newState = CheckBalanceDstState(firstResponse: response, appContext: self.appContext)
@@ -70,9 +70,21 @@ class UnsureCheckBalanceDstState: CheckBalanceDstState {
             return response
         }
         else {
-            // more than one bank account matched -> change state and ask to choose
-            let response: VocalAssistantResponse = .chooseBankAccount(among: matchingBankAccounts)
+            let response: VocalAssistantResponse
             
+            if self.possibleCurrency == nil && self.possibleBankAccount == nil {
+                // user didn't mention any detail about the bank account to check
+                response = .justAnswer(
+                    answer: "Ok.",
+                    followUpQuestion: "Which account do you want to check the balance of? Your bank accounts are: \(appContext.userBankAccounts.joined())"
+                )
+            }
+            else {
+                // more than one bank account matched -> ask to choose
+                response = .chooseBankAccount(among: matchingBankAccounts)
+            }
+        
+            // go to 'sure' state
             let newState = CheckBalanceDstState(firstResponse: response, appContext: self.appContext)
             stateChanger.changeDstState(to: newState)
             

@@ -9,7 +9,7 @@ import Foundation
 
 class UnsureCheckTransactionsDstState: CheckTransactionsDstState {
     override var description: String {
-        return "UnsureCheckTransactionsDstState()"
+        return "UnsureCheckTransactionsDstState(possibleBankAccount: \(self.possibleBankAccount?.reconstructedEntity ?? "nil"), possibleContact: \(self.possibleContact?.reconstructedEntity ?? "nil"))"
     }
     
     private var previousState: DstState
@@ -79,7 +79,11 @@ class UnsureCheckTransactionsDstState: CheckTransactionsDstState {
             // save the contact only if just one matches
             let eventualMatchingContact = matchingContacts.count == 1 ? matchingContacts[0] : nil
             
-            let newState = CheckTransactionsDstState(firstResponse: response, appContext: self.appContext, contact: eventualMatchingContact)
+            let newState = CheckTransactionsDstState(
+                firstResponse: response,
+                appContext: self.appContext,
+                contact: eventualMatchingContact
+            )
             stateChanger.changeDstState(to: newState)
             
             return response

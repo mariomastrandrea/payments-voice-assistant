@@ -62,14 +62,14 @@ class CheckBalanceDstState: DstState {
                 // don't create state
                 let response: VocalAssistantResponse = .justAnswer(
                     answer: exceedingEntitiesErrorMsg,
-                    followUpQuestion: "How can I help you, again?"
+                    followUpQuestion: previousState.lastResponse.followUpQuestion
                 )
                 return (nil, response)
             }
             else {
                 let response: VocalAssistantResponse = .justAnswer(
                     answer: exceedingEntitiesErrorMsg,
-                    followUpQuestion: "Which bank account do you want to check the balance of?"
+                    followUpQuestion: "Which bank account do you want to check the balance of? Your bank accounts are: \(appContext.userBankAccounts.joined())"
                 )
                 return (CheckBalanceDstState(firstResponse: response, appContext: appContext), response)
             }
@@ -145,7 +145,7 @@ class CheckBalanceDstState: DstState {
             if matchingBankAccounts.count == 0 {
                 let response: VocalAssistantResponse = .justAnswer(
                     answer: "Sorry, I didn't find any bank account matching your request.",
-                    followUpQuestion: "Which account do you want to check the balance of?"
+                    followUpQuestion: "Which account do you want to check the balance of? Your bank accounts are: \(appContext.userBankAccounts.joined())"
                 )
                 return (CheckBalanceDstState(firstResponse: response, appContext: appContext), response)
             }
@@ -166,7 +166,7 @@ class CheckBalanceDstState: DstState {
                 // none of the two has been specified -> inform about the misunderstanding and ask user to specify one
                 let response: VocalAssistantResponse = .justAnswer(
                     answer: "Sorry, I didn't quite understant.",
-                    followUpQuestion: "Which account do you want to check the balance of?"
+                    followUpQuestion: "Which account do you want to check the balance of? Your bank accounts are: \(appContext.userBankAccounts.joined())"
                 )
                 
                 return (CheckBalanceDstState(firstResponse: response, appContext: appContext), response)
@@ -175,7 +175,7 @@ class CheckBalanceDstState: DstState {
                 // none of the two has been specified -> confirm the intent and ask user to specify one
                 let response: VocalAssistantResponse = .justAnswer(
                     answer: "Ok.",
-                    followUpQuestion: "Which account do you want to check the balance of?"
+                    followUpQuestion: "Which account do you want to check the balance of? Your bank accounts are: \(appContext.userBankAccounts.joined())"
                 )
                 
                 return (CheckBalanceDstState(firstResponse: response, appContext: appContext), response)

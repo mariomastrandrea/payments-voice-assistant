@@ -46,5 +46,15 @@ public struct VocalAssistantBankAccount: CustomStringConvertible, Hashable {
     public static func == (lhs: VocalAssistantBankAccount, rhs: VocalAssistantBankAccount) -> Bool {
         return lhs.id == rhs.id
     }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.id)
+    }
+}
+
+extension Array where Element == VocalAssistantBankAccount {
+    func joined() -> String {
+        return self.map { $0.name }.joinGrammatically()
+    }
 }
 

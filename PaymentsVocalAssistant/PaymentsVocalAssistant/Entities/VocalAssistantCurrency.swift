@@ -22,6 +22,9 @@ public struct VocalAssistantCurrency: CustomStringConvertible, Hashable {
         return self.id
     }
     
+    public var literalPlural: String {
+        return self.literals.isNotEmpty ? "\(self.literals[0])s" : (self.literals[safe: 0] ?? self.id)
+    }
     
     public init(id: String, symbols: [String], literals: [String]) {
         self.id = id
@@ -39,5 +42,9 @@ public struct VocalAssistantCurrency: CustomStringConvertible, Hashable {
     
     public static func == (lhs: VocalAssistantCurrency, rhs: VocalAssistantCurrency) -> Bool {
         return lhs.id == rhs.id
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.id)
     }
 }
