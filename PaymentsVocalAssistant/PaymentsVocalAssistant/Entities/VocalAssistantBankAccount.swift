@@ -50,6 +50,18 @@ public struct VocalAssistantBankAccount: CustomStringConvertible, Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(self.id)
     }
+    
+    internal func toEntity() -> PaymentsEntity {
+        return PaymentsEntity(
+            type: .bank,
+            reconstructedEntity: self.name,
+            entityProbability: Float32(1.0),
+            reconstructedTokens: self.name.splitByWhitespace(),
+            rawTokens: [],
+            tokensLabels: [],
+            tokensLabelsProbabilities: []
+        )
+    }
 }
 
 extension Array where Element == VocalAssistantBankAccount {

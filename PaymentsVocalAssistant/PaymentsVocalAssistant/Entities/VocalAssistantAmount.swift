@@ -36,7 +36,7 @@ public struct VocalAssistantAmount: CustomStringConvertible {
     }
     
     public var descriptionWithoutSign: String {
-        return "\(self.currency.symbols[0])\(self.roundedAbs)"
+        return "\(self.currency.symbols[safe: 0] ?? self.currency.id)\(self.roundedAbs)"
     }
     
     public init(value: Double, currency: VocalAssistantCurrency) {
@@ -165,5 +165,17 @@ public struct VocalAssistantAmount: CustomStringConvertible {
         }
         
         return nil
+    }
+    
+    internal func toEntity() -> PaymentsEntity {
+        return PaymentsEntity(
+            type: .amount,
+            reconstructedEntity: self.descriptionWithoutSign,
+            entityProbability: Float32(1.0),
+            reconstructedTokens: self.descriptionWithoutSign.splitByWhitespace(),
+            rawTokens: [],
+            tokensLabels: [],
+            tokensLabelsProbabilities: []
+        )
     }
 }

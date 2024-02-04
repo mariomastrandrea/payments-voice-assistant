@@ -1,5 +1,5 @@
 //
-//  UnsureSendMoneyDstState.swift
+//  UnsureRequestMoneyDstState.swift
 //  PaymentsVocalAssistant
 //
 //  Created by Mario Mastrandrea on 04/02/24.
@@ -7,20 +7,20 @@
 
 import Foundation
 
-class UnsureSendMoneyDstState: SendMoneyDstState {
+class UnsureRequestMoneyDstState: RequestMoneyDstState {
     override var description: String {
-        return "UnsureSendMoneyDstState(possibleAmount: \(self.possibleAmount?.reconstructedEntity ?? "nil"), possibleRecipient: \(self.possibleRecipient?.reconstructedEntity ?? "nil"), possibleBankAccount: \(self.possibleBankAccount?.reconstructedEntity ?? "nil"))"
+        return "UnsureRequestMoneyDstState(possibleAmount: \(self.possibleAmount?.reconstructedEntity ?? "nil"), possibleSender: \(self.possibleSender?.reconstructedEntity ?? "nil"), possibleBankAccount: \(self.possibleBankAccount?.reconstructedEntity ?? "nil"))"
     }
     
     private var previousState: DstState
     private var possibleAmount: PaymentsEntity?
-    private var possibleRecipient: PaymentsEntity?
+    private var possibleSender: PaymentsEntity?
     private var possibleBankAccount: PaymentsEntity?
     
-    init(lastResponse: VocalAssistantResponse, previousState: DstState, possibleAmount: PaymentsEntity?, possibleRecipient: PaymentsEntity?, possibleBankAccount: PaymentsEntity?, appContext: AppContext) {
+    init(lastResponse: VocalAssistantResponse, previousState: DstState, possibleAmount: PaymentsEntity?, possibleSender: PaymentsEntity?, possibleBankAccount: PaymentsEntity?, appContext: AppContext) {
         self.previousState = previousState
         self.possibleAmount = possibleAmount
-        self.possibleRecipient = possibleRecipient
+        self.possibleSender = possibleSender
         self.possibleBankAccount = possibleBankAccount
         
         super.init(firstResponse: lastResponse, appContext: appContext)
@@ -43,7 +43,7 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
         // look for entity matches
         
         var matchingAmount: VocalAssistantAmount?
-        var matchingRecipients = [VocalAssistantContact]()
+        var matchingSenders = [VocalAssistantContact]()
         var matchingBankAccounts = [VocalAssistantBankAccount]()
         
         if let possibleAmount = self.possibleAmount {
@@ -56,9 +56,9 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
             )
         }
         
-        if let possibleRecipient = self.possibleRecipient {
-            // a recipient has been mentioned -> look for matching contacts
-            matchingRecipients = self.appContext.userContacts.keepAndOrderJustTheOnesSimilar(to: possibleRecipient.reconstructedEntity)
+        if let possibleSender = self.possibleSender {
+            // a sender has been mentioned -> look for matching contacts
+            matchingSenders = self.appContext.userContacts.keepAndOrderJustTheOnesSimilar(to: possibleSender.reconstructedEntity)
         }
         
         if let possibleBankAccount = self.possibleBankAccount {
@@ -79,11 +79,11 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
                 
         if self.possibleAmount != nil && matchingAmount == nil {
             // amount has not been understood
-            matchingNotFoundMessages.append("I didn't quite understand how much you want to send (please specify the amount together with the correct currency)")
+            matchingNotFoundMessages.append("I didn't quite understand how much you want to request (please specify the amount together with the correct currency)")
         }
         
-        if self.possibleRecipient != nil && matchingRecipients.isEmpty {
-            // recipient has not been understood
+        if self.possibleSender != nil && matchingSenders.isEmpty {
+            // sender has not been understood
             matchingNotFoundMessages.append("I didn't find any contact matching your request")
         }
         
@@ -97,25 +97,25 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
             matchingNotFoundMessage = "Ok, but " + matchingNotFoundMessage + "."
         }
         
-        // * priority to: amount -> recipient -> bank account *
+        // * priority to: amount -> sender -> bank account *
         
         guard let matchingAmount = matchingAmount else {
             // ask to specify the amount and go to the 'sure' state, saving any relevant state info
             
             let response: VocalAssistantResponse = .justAnswer(
                 answer: matchingNotFoundMessage.isEmpty ? "Ok." : matchingNotFoundMessage,
-                followUpQuestion: "How much do you want to send?"
+                followUpQuestion: "How much do you want to request?"
             )
             
-            // save recipient and bank account only if there is just one match
-            let eventualMatchingRecipient = matchingRecipients.count == 1 ? matchingRecipients[0] : nil
+            // save sender and bank account only if there is just one match
+            let eventualMatchingSender = matchingSenders.count == 1 ? matchingSenders[0] : nil
             let eventualMatchingBankAccount = matchingBankAccounts.count == 1 ? matchingBankAccounts[0] : nil
             
-            let newSureState = WaitAmountSendMoneyDstState(
+            let newSureState = WaitAmountRequestMoneyDstState(
                 firstResponse: response,
                 appContext: self.appContext,
                 amount: nil,
-                recipient: eventualMatchingRecipient,
+                sender: eventualMatchingSender,
                 bankAccount: eventualMatchingBankAccount
             )
             stateChanger.changeDstState(to: newSureState)
@@ -125,8 +125,8 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
         
         // (here amount is specified)
         
-        if matchingRecipients.isEmpty {
-            // ask to specify the recipient and go to the 'sure' state, saving any relevant state info
+        if matchingSenders.isEmpty {
+            // ask to specify the sender and go to the 'sure' state, saving any relevant state info
             
             let eventualMatchingBankAccount = matchingBankAccounts.count == 1 ? matchingBankAccounts[0] : nil
             
@@ -139,14 +139,14 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
                 
                 let response: VocalAssistantResponse = .justAnswer(
                     answer: matchingNotFoundMessage,
-                    followUpQuestion: "How much do you want to send?"
+                    followUpQuestion: "How much do you want to request?"
                 )
                 
-                let newSureState = WaitAmountSendMoneyDstState(
+                let newSureState = WaitAmountRequestMoneyDstState(
                     firstResponse: response,
                     appContext: self.appContext,
                     amount: nil,
-                    recipient: nil,
+                    sender: nil,
                     bankAccount: bankAccount
                 )
                 stateChanger.changeDstState(to: newSureState)
@@ -155,14 +155,14 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
             
             let response: VocalAssistantResponse = .justAnswer(
                 answer: matchingNotFoundMessage.isEmpty ? "Ok." : matchingNotFoundMessage,
-                followUpQuestion: "Who do you want to send this money to?"
+                followUpQuestion: "Who do you want to request this money from?"
             )
             
-            let newSureState = WaitRecipientSendMoneyDstState(
+            let newSureState = WaitSenderRequestMoneyDstState(
                 firstResponse: response,
                 appContext: self.appContext,
                 amount: matchingAmount,
-                recipient: nil,
+                sender: nil,
                 bankAccount: eventualMatchingBankAccount
             )
             
@@ -170,24 +170,24 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
             return response
         }
         
-        // (here amount is specified and there are >= 1 specified receivers)
+        // (here amount is specified and there are >= 1 specified senders)
         
         if matchingBankAccounts.isEmpty {
             // ask to specify the bank account and go to the 'sure' state, saving any relevant state info
             
-            // save the recipient only if it has been perfectly matched with only one contact
-            let eventualMatchingRecipient = matchingRecipients.count == 1 ? matchingRecipients[0] : nil
+            // save the sender only if it has been perfectly matched with only one contact
+            let eventualMatchingSender = matchingSenders.count == 1 ? matchingSenders[0] : nil
             
             let response: VocalAssistantResponse = .justAnswer(
                 answer: matchingNotFoundMessage.isEmpty ? "Ok." : matchingNotFoundMessage,
                 followUpQuestion: "Which of your bank accounts do you want to use?\nYour bank accounts are at: \(self.appContext.userBankAccounts.map{$0.description}.joinGrammatically())"
             )
             
-            let newSureState = WaitBankAccountSendMoneyDstState(
+            let newSureState = WaitBankAccountRequestMoneyDstState(
                 firstResponse: response,
                 appContext: self.appContext,
                 amount: matchingAmount,
-                recipient: eventualMatchingRecipient,
+                sender: eventualMatchingSender,
                 bankAccount: nil
             )
             
@@ -195,10 +195,10 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
             return response
         }
         
-        // here every info is specified, but recipient and bank account might have more than one match
-        // (precedence to recipient)
+        // here every info is specified, but sender and bank account might have more than one match
+        // (precedence to sender)
         
-        if matchingRecipients.areMoreThanOne {
+        if matchingSenders.areMoreThanOne {
             // ask to choose among matching contacts, and go to the 'sure' state, saving any relevant state info, and eventually checking that the currency is coherent with the bank account
             
             let eventualMatchingBankAccount = matchingBankAccounts.count == 1 ? matchingBankAccounts[0] : nil
@@ -211,14 +211,14 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
                 
                 let response: VocalAssistantResponse = .justAnswer(
                     answer: matchingNotFoundMessage,
-                    followUpQuestion: "How much do you want to send?"
+                    followUpQuestion: "How much do you want to request?"
                 )
                 
-                let newSureState = WaitAmountSendMoneyDstState(
+                let newSureState = WaitAmountRequestMoneyDstState(
                     firstResponse: response,
                     appContext: self.appContext,
                     amount: nil,
-                    recipient: nil,
+                    sender: nil,
                     bankAccount: bankAccount
                 )
                 stateChanger.changeDstState(to: newSureState)
@@ -226,16 +226,16 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
             }
             
             let response: VocalAssistantResponse = .askToChooseContact(
-                contacts: matchingRecipients,
+                contacts: matchingSenders,
                 answer: "Ok, I've found multiple contacts matching your request.",
-                followUpQuestion: "Who do you want to send this money to?"
+                followUpQuestion: "Who do you want to request this money from?"
             )
             
-            let newSureState = WaitRecipientSendMoneyDstState(
+            let newSureState = WaitSenderRequestMoneyDstState(
                 firstResponse: response,
                 appContext: self.appContext,
                 amount: matchingAmount,
-                recipient: nil,
+                sender: nil,
                 bankAccount: eventualMatchingBankAccount
             )
             
@@ -243,8 +243,8 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
             return response
         }
         
-        let matchingRecipient = matchingRecipients[0]
-        // here both amount and recipient have been specified, but the matching bank accounts might be more than one
+        let matchingSender = matchingSenders[0]
+        // here both amount and sender have been specified, but the matching bank accounts might be more than one
         
         // check that the matching bank accounts have all the same currency as the specified one
         matchingBankAccounts = matchingBankAccounts.filter { $0.currency == matchingAmount.currency }
@@ -255,14 +255,14 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
             let response: VocalAssistantResponse = .askToChooseBankAccount(
                 bankAccounts: self.appContext.userBankAccounts.filter { $0.currency == matchingAmount.currency },
                 answer: "Ok, but the mentioned bank account is not in \(matchingAmount.currency.literalPlural). Please specify a bank account with a coherent currency.",
-                followUpQuestion: "Which of your bank accounts do you want to use to send that money?"
+                followUpQuestion: "Which of your bank accounts do you want to use to request that money?"
             )
             
-            let newSureState = WaitBankAccountSendMoneyDstState(
+            let newSureState = WaitBankAccountRequestMoneyDstState(
                 firstResponse: response,
                 appContext: self.appContext,
                 amount: matchingAmount,
-                recipient: matchingRecipient,
+                sender: matchingSender,
                 bankAccount: nil
             )
             
@@ -279,11 +279,11 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
                 followUpQuestion: "Which one do you want to use?"
             )
             
-            let newSureState = WaitBankAccountSendMoneyDstState(
+            let newSureState = WaitBankAccountRequestMoneyDstState(
                 firstResponse: response,
                 appContext: self.appContext,
                 amount: matchingAmount,
-                recipient: matchingRecipient,
+                sender: matchingSender,
                 bankAccount: nil
             )
             
@@ -293,21 +293,21 @@ class UnsureSendMoneyDstState: SendMoneyDstState {
         
         let matchingBankAccount = matchingBankAccounts[0]
 
-        // * here the amount is specified, with only one recipient, and only one (coherent) bank account *
+        // * here the amount is specified, with only one sender, and only one (coherent) bank account *
         // go to the confirmation stage
         
-        let response: VocalAssistantResponse = .sendMoneyConfirmationQuestion(
+        let response: VocalAssistantResponse = .requestMoneyConfirmationQuestion(
             answer: "Ok.",
             amount: matchingAmount,
-            recipient: matchingRecipient,
-            sourceBankAccount: matchingBankAccount
+            sender: matchingSender,
+            destinationBankAccount: matchingBankAccount
         )
         
-        let newConfirmationState = ConfirmationSendMoneyDstState(
+        let newConfirmationState = ConfirmationRequestMoneyDstState(
             lastResponse: response,
             amountToConfirm: matchingAmount,
-            recipientToConfirm: matchingRecipient,
-            sourceBankAccountToConfirm: matchingBankAccount,
+            senderToConfirm: matchingSender,
+            destinationBankAccountToConfirm: matchingBankAccount,
             appContext: self.appContext
         )
         

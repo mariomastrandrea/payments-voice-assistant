@@ -16,6 +16,7 @@ class UnsureCheckTransactionsDstState: CheckTransactionsDstState {
     private var possibleBankAccount: PaymentsEntity?
     private var possibleContact: PaymentsEntity?
     
+    
     init(lastResponse: VocalAssistantResponse, previousState: DstState, possibleBankAccount: PaymentsEntity? = nil, possibleContact: PaymentsEntity? = nil, appContext: AppContext) {
         self.previousState = previousState
         self.possibleBankAccount = possibleBankAccount
@@ -23,7 +24,6 @@ class UnsureCheckTransactionsDstState: CheckTransactionsDstState {
         
         super.init(firstResponse: lastResponse, appContext: appContext)
     }
-    
     
     override func userExpressedNoneIntent(entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
         

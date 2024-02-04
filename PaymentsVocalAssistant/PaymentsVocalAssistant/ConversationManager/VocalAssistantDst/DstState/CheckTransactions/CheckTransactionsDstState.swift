@@ -269,13 +269,39 @@ class CheckTransactionsDstState: DstState {
     }
     
     func userExpressedSendMoneyIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+        let (newState, response) = SendMoneyDstState.from(
+            probability: probability,
+            entities: entities,
+            previousState: self,
+            appContext: self.appContext
+        )
+        
+        if let newState = newState {
+            stateChanger.changeDstState(to: newState)
+        }
+        else {
+            self.lastResponse = response
+        }
+        
+        return response
     }
     
     func userExpressedRequestMoneyIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+        let (newState, response) = RequestMoneyDstState.from(
+            probability: probability,
+            entities: entities,
+            previousState: self,
+            appContext: self.appContext
+        )
+        
+        if let newState = newState {
+            stateChanger.changeDstState(to: newState)
+        }
+        else {
+            self.lastResponse = response
+        }
+        
+        return response
     }
     
     func userExpressedYesIntent(probability: Float32, stateChanger: DstStateChanger) -> VocalAssistantResponse {

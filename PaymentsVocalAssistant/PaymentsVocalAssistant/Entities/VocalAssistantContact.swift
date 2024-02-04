@@ -61,6 +61,18 @@ public struct VocalAssistantContact: CustomStringConvertible, Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(self.id)
     }
+    
+    internal func toEntity() -> PaymentsEntity {
+        return PaymentsEntity(
+            type: .user,
+            reconstructedEntity: self.description,
+            entityProbability: Float32(1.0),
+            reconstructedTokens: self.description.splitByWhitespace(),
+            rawTokens: [],
+            tokensLabels: [],
+            tokensLabelsProbabilities: []
+        )
+    }
 }
 
 internal extension Array where Element == VocalAssistantContact {
