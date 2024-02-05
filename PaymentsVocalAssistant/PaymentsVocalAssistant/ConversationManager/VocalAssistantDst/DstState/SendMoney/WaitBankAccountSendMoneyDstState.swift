@@ -156,7 +156,7 @@ class WaitBankAccountSendMoneyDstState: SendMoneyDstState {
                 followUpQuestion: "Who do you want to send the money to?"
             )
             
-            let newState = WaitBankAccountSendMoneyDstState(
+            let newState = WaitRecipientSendMoneyDstState(
                 firstResponse: response,
                 appContext: self.appContext,
                 amount: alreadySpecifiedAmount,
@@ -222,7 +222,7 @@ class WaitBankAccountSendMoneyDstState: SendMoneyDstState {
                 followUpQuestion: "Who do you want to send the money to?"
             )
             
-            let newState = WaitBankAccountSendMoneyDstState(
+            let newState = WaitRecipientSendMoneyDstState(
                 firstResponse: response,
                 appContext: self.appContext,
                 amount: alreadySpecifiedAmount,

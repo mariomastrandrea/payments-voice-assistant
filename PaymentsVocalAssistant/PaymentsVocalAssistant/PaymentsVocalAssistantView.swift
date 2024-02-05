@@ -95,6 +95,7 @@ public struct PaymentsVocalAssistantView: View {
                             onTap: { bankAccount in
                                 Task {
                                     let assistantResponse = await self.conversationManager.userSelects(bankAccount: bankAccount)
+                                    print("*** assistant response: \(assistantResponse) ***")
                                     
                                     self.launchTaskToReactTo(assistantResponse: assistantResponse)
                                 }
@@ -227,6 +228,8 @@ public struct PaymentsVocalAssistantView: View {
             case .performInAppOperation(_, _, _, _, _):
                 break
             }
+            
+            print("*** choose contacts: \(self.contactsList.map{$0.description}.joined(separator: ",")) ***")
         }
     }
 }
