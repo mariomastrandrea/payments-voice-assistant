@@ -45,7 +45,10 @@ public enum VocalAssistantResponse {
     }
     
     var completeAnswer: String {
-        return (self.answer + " " + self.followUpQuestion).trimmingCharacters(in: .whitespacesAndNewlines)
+        let lastChar = self.answer.isEmpty ? "" : String(self.answer[self.answer.index(before: self.answer.endIndex)])
+        return self.answer +
+                (lastChar == "\n" ? "" : " ") + 
+                self.followUpQuestion.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     static func checkBalanceOperation(bankAccount: VocalAssistantBankAccount) -> Self {

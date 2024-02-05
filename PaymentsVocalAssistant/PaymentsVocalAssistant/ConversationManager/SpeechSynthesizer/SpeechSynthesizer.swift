@@ -19,7 +19,7 @@ class SpeechSynthesizer {
     
     func stopSpeaking() {
         // first stop any previous speech
-        self.speechSynthesizer.stopSpeaking(at: .word)
+        self.speechSynthesizer.stopSpeaking(at: .immediate)
     }
     
     func speak(text: String) {

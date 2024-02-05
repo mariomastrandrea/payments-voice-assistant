@@ -45,16 +45,39 @@ public protocol PaymentsVocalAssistantDelegate {
 }
 
 public class AppDelegateStub: PaymentsVocalAssistantDelegate {
+    // * currencies *
+    
     public static let dollarCurrency = VocalAssistantCurrency(id: "$", symbols: ["$", "USD"], literals: ["dollar"])
     public static let aedCurrency = VocalAssistantCurrency(id: "AED", symbols: ["AED"], literals: ["dirham"])
+    
+    public static let defaultCurrencies = [
+        dollarCurrency,
+        aedCurrency
+    ]
+    
+    // * bank account *
     
     public static let topBankAccount = VocalAssistantBankAccount(id: "1", name: "Top Bank", default: true, currency: dollarCurrency)
     public static let futureBankAccount = VocalAssistantBankAccount(id: "2", name: "Future Bank", default: false, currency: aedCurrency)
     
+    public static let defaultBankAccounts = [
+        topBankAccount: 2350.68,
+        futureBankAccount: 5126.49
+    ]
+    
+    // * contacts *
+    
     public static let antonioRossiContact = VocalAssistantContact(id: "01234567", firstName: "Antonio", lastName: "Rossi")
     public static let giuseppeVerdiContact = VocalAssistantContact(id: "12333444", firstName: "Giuseppe", lastName: "Verdi")
     
-    public static let lastTransactionsStub: [VocalAssistantTransaction] = [
+    public static let defaultContacts = [
+        antonioRossiContact,
+        giuseppeVerdiContact
+    ]
+    
+    // * transactions *
+    
+    public static let defaultLastTransactions: [VocalAssistantTransaction] = [
         VocalAssistantTransaction(
             amount: VocalAssistantAmount(
                 value: 20.5,
@@ -111,48 +134,35 @@ public class AppDelegateStub: PaymentsVocalAssistantDelegate {
         )
     ]
     
-    private let contacts: [VocalAssistantContact]
-    private let bankAccounts: [VocalAssistantBankAccount]
-    private let lastTransactions: [VocalAssistantTransaction]
+    
+    // instance properties
+    public let contacts: [VocalAssistantContact]
+    public var bankAccounts: [VocalAssistantBankAccount: Double]
+    public var lastTransactions: [VocalAssistantTransaction]
 
     
     public init(
-        contacts: [VocalAssistantContact] = [
-            AppDelegateStub.antonioRossiContact,
-            AppDelegateStub.giuseppeVerdiContact
-        ],
-        bankAccounts: [VocalAssistantBankAccount] = [
-            AppDelegateStub.futureBankAccount,
-            AppDelegateStub.topBankAccount
-        ],
-        transactions: [VocalAssistantTransaction] = AppDelegateStub.lastTransactionsStub
+        contacts: [VocalAssistantContact] = defaultContacts,
+        bankAccounts: [VocalAssistantBankAccount: Double] = defaultBankAccounts,
+        transactions: [VocalAssistantTransaction] = defaultLastTransactions
     ) {
         self.contacts = contacts
         self.bankAccounts = bankAccounts
         self.lastTransactions = transactions
     }
     
-    public func 
-    performInAppCheckBalanceOperation(for bankAccount: VocalAssistantBankAccount) async throws -> VocalAssistantAmount {
-        let amounts: [Double] = [127.88, 256.59, 44.80, 33.12, 40.11, 86.50, 167.22, 81.88]
+    public func performInAppCheckBalanceOperation(for bankAccount: VocalAssistantBankAccount) async throws -> VocalAssistantAmount {
         
-        var bankAccountFakeBalances: [VocalAssistantBankAccount: VocalAssistantAmount] = [:]
-        self.bankAccounts.forEach { bankAccount in
-            let randomAmount = amounts.randomElement()!
-            bankAccountFakeBalances[bankAccount] = VocalAssistantAmount(
-                value: randomAmount,
-                currency: bankAccount.currency
-            )
+        let bankAccountSearchResult = self.bankAccounts.first { (b, amount) in
+            b.id == bankAccount.id
+        }
+                
+        guard let (_, amount) = bankAccountSearchResult else {
+            throw StubError(errorMsg: "\(bankAccount.name) bank account not found.")
         }
         
-        let result = bankAccountFakeBalances.first { (b, _) in b.id == bankAccount.id }
-        
-        guard let (_, fakeAccountBalance) = result else {
-            throw StubError(errorMsg: "\(bankAccount.name) bank account not found")
-        }
-        
-        logInfo("App delegate stub performed check balance: \(fakeAccountBalance.description)")
-        return fakeAccountBalance
+        logInfo("App delegate stub performed check balance: \(amount.description)")
+        return VocalAssistantAmount(value: amount, currency: bankAccount.currency)
     }
     
     public func performInAppCheckLastTransactionsOperation(for bankAccount: VocalAssistantBankAccount?, involving contact: VocalAssistantContact?) async throws -> [VocalAssistantTransaction] {
@@ -166,13 +176,69 @@ public class AppDelegateStub: PaymentsVocalAssistantDelegate {
     }
     
     public func performInAppSendMoneyOperation(amount: VocalAssistantAmount, to receiver: VocalAssistantContact, using bankAccount: VocalAssistantBankAccount) async throws -> (success: Bool, errorMsg: String?) {
-        let outcome = [true, false].randomElement()!
-        return (success: outcome, errorMsg: outcome ? nil : "You have unsufficient funds in the specified bank account")
+        
+        guard let bankAccountAmount = self.bankAccounts[bankAccount] else {
+            throw StubError(errorMsg: "\(bankAccount.name) bank account not found.")
+        }
+        
+        guard self.contacts.contains(where: { c in c.id == receiver.id }) else {
+            throw StubError(errorMsg: "\(receiver) contact not found.")
+        }
+        
+        guard bankAccount.currency == amount.currency else {
+            throw StubError(errorMsg: "\(bankAccount.name) account is in \(bankAccount.currency.literalPlural) while the \(amount.descriptionWithoutSign) amount is in \(amount.currency.literalPlural).")
+        }
+        
+        guard bankAccountAmount >= amount.value else {
+            return (success: false, errorMsg: "You don't have enough credit in your \(bankAccount.name) account (\(VocalAssistantAmount(value: bankAccountAmount, currency: bankAccount.currency)))")
+        }
+        
+        // save transaction, subtract funds, and return successful outcome
+        
+        let transaction = VocalAssistantTransaction(
+            amount: amount.value <= 0 ? amount : VocalAssistantAmount(
+                value: -1 * amount.value,
+                currency: amount.currency
+            ),
+            contact: receiver,
+            bankAccount: bankAccount,
+            date: Date()
+        )
+        self.lastTransactions.append(transaction)
+        self.bankAccounts[bankAccount] = bankAccountAmount - abs(amount.value)
+        
+        return (success: true, errorMsg: nil)
     }
     
     public func performInAppRequestMoneyOperation(amount: VocalAssistantAmount, from sender: VocalAssistantContact, using bankAccount: VocalAssistantBankAccount) async throws -> (success: Bool, errorMsg: String?) {
-        let outcome = [true, false].randomElement()!
-        return (success: outcome, errorMsg: outcome ? nil : "An unexpected error occurred processing the request money operation")
+        
+        guard let bankAccountAmount = self.bankAccounts[bankAccount] else {
+            throw StubError(errorMsg: "\(bankAccount.name) bank account not found.")
+        }
+        
+        guard self.contacts.contains(where: { c in c.id == sender.id }) else {
+            throw StubError(errorMsg: "\(sender) contact not found.")
+        }
+        
+        guard bankAccount.currency == amount.currency else {
+            throw StubError(errorMsg: "\(bankAccount.name) account is in \(bankAccount.currency.literalPlural) while the \(amount.descriptionWithoutSign) amount is in \(amount.currency.literalPlural).")
+        }
+        
+        // save transaction, add funds, and return successful outcome
+        
+        let transaction = VocalAssistantTransaction(
+            amount: amount.value >= 0 ? amount : VocalAssistantAmount(
+                value: -1 * amount.value,
+                currency: amount.currency
+            ),
+            contact: sender,
+            bankAccount: bankAccount,
+            date: Date()
+        )
+        self.lastTransactions.append(transaction)
+        self.bankAccounts[bankAccount] = bankAccountAmount + abs(amount.value)
+        
+        return (success: true, errorMsg: nil)
     }
 }
 

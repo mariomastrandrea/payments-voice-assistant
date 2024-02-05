@@ -197,6 +197,9 @@ class CheckBalanceDstState: DstState {
         if let newState = newState {
             stateChanger.changeDstState(to: newState)
         }
+        else {
+            self.lastResponse = response
+        }
         
         return response
     }

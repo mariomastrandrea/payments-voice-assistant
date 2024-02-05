@@ -13,12 +13,15 @@ import Contacts
 struct TestAppMainView: App {
     let contactStore: CNContactStore
     
+    @State private var appDelegateStub: PaymentsVocalAssistantDelegate? = nil
     @State private var appContext: AppContext? = nil
     @State private var initErrorMessage: String? = nil
     @State private var appInitializationCompleted: Bool = false
     
     init() {
         self.contactStore = CNContactStore()
+        
+        self.appDelegateStub = nil
         self.appContext = nil
         self.initErrorMessage = nil
         self.appInitializationCompleted = false
@@ -29,7 +32,7 @@ struct TestAppMainView: App {
             if self.appInitializationCompleted {
                 PaymentsVocalAssistantView(
                     appContext: self.appContext,
-                    appDelegate: AppDelegateStub(),
+                    appDelegate: self.appDelegateStub,
                     initErrorMessage: self.initErrorMessage
                 )
             }
@@ -42,9 +45,6 @@ struct TestAppMainView: App {
     
     private func initContactsAndBankAccounts() {
         Task {
-            // generate fake bank accounts
-            let bankAccounts = self.simulateBankAccounts()
-            
             // fetch contacts
             let contacts = await self.fetchContacts()
             
@@ -58,9 +58,14 @@ struct TestAppMainView: App {
             }
             
             Task { @MainActor in
+                let appDelegate = AppDelegateStub(
+                    contacts: contacts,
+                    transactions: []
+                )
+                self.appDelegateStub = appDelegate
                 self.appContext = AppContext(
                     userContacts: contacts,
-                    userBankAccounts: bankAccounts
+                    userBankAccounts: Array(appDelegate.bankAccounts.keys)
                 )
                 self.appInitializationCompleted = true
             }
@@ -98,13 +103,7 @@ struct TestAppMainView: App {
         
         return contacts
     }
-    
-    private func simulateBankAccounts() -> [VocalAssistantBankAccount] {
-        return [
-            AppDelegateStub.futureBankAccount,
-            AppDelegateStub.topBankAccount
-        ]
-    }
+     
 
     private func isContactsPermissionGranted() -> Bool {
         let authorizationStatus = CNContactStore.authorizationStatus(for: .contacts)

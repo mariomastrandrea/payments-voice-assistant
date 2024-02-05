@@ -9,9 +9,9 @@ import SwiftUI
 
 struct VocalAssistantSelectionList<T>: View 
  where T: CustomStringConvertible, T: Identifiable {
-    @State private var elements: [T] = []
-    @State private var elementCallbak: (T) -> Void = { _ in () }
-    @State private var color: Color
+    private var elements: [T] = []
+    private var elementCallbak: (T) -> Void = { _ in () }
+    private var color: Color
     
     private let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
     

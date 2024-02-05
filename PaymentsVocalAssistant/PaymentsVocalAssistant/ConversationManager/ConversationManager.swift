@@ -23,7 +23,6 @@ public class ConversationManager {
         self.speechSyntesizer = speechSyntesizer
         self.appDelegate = appDelegate
         self.defaultErrorMessage = defaultErrorMessage
-        
     }
     
     func startConversation() -> String {
@@ -101,7 +100,10 @@ public class ConversationManager {
                     else {
                         answer = successMessage.replacingOccurrences(
                             of: "{transactions}",
-                            with: transactions.map { $0.description }.joined(separator: "\n")
+                            with: transactions
+                                    .sorted{ t1, t2 in t1.date < t2.date }
+                                    .prefix(10)   // limit to last 10 transactions
+                                    .map { $0.description }.joined(separator: "\n")
                         )
                     }
                     logInfo("Successfully performed in-app check last transactions\(bankAccount == nil ? "" : " for \(bankAccount!.name) account")\(contact == nil ? "" : " involving \(contact!.description)") -> #\(transactions.count) transactions ")

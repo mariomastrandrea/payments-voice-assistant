@@ -464,8 +464,10 @@ class RequestMoneyDstState: DstState {
         if let newState = newCheckBalanceState {
             stateChanger.changeDstState(to: newState)
         }
+        else {
+            self.lastResponse = response
+        }
         
-        self.lastResponse = response
         return response
     }
     

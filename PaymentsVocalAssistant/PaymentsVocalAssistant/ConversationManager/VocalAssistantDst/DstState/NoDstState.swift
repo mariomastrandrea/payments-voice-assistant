@@ -56,8 +56,10 @@ class NoDstState: DstState {
         if let newState = newCheckBalanceState {
             stateChanger.changeDstState(to: newState)
         }
-        
-        self.lastResponse = response
+        else {
+            self.lastResponse = response
+        }
+    
         return response
     }
     
