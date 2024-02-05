@@ -21,22 +21,22 @@ public struct VocalAssistantActivityIndicator: View {
 }
 
 /** Basic Activity Indicator wrapper of the UIKit ActivityIndicatorView, to make it compatible with iOS 13 */
-struct SwiftUIActivityIndicator: UIViewRepresentable {
-    typealias UIViewType = UIActivityIndicatorView
+public struct SwiftUIActivityIndicator: UIViewRepresentable {
+    public typealias UIViewType = UIActivityIndicatorView
     
     var isAnimating: Bool
     let style: UIActivityIndicatorView.Style
     
-    init(isAnimating: Bool = true, style: UIActivityIndicatorView.Style = .large) {
+    public init(isAnimating: Bool = true, style: UIActivityIndicatorView.Style = .large) {
         self.isAnimating = isAnimating
         self.style = style
     }
 
-    func makeUIView(context: UIViewRepresentableContext<SwiftUIActivityIndicator>) -> UIActivityIndicatorView {
+    public func makeUIView(context: UIViewRepresentableContext<SwiftUIActivityIndicator>) -> UIActivityIndicatorView {
         return UIActivityIndicatorView(style: style)
     }
 
-    func updateUIView(_ uiView: UIActivityIndicatorView, context: UIViewRepresentableContext<SwiftUIActivityIndicator>) {
+    public func updateUIView(_ uiView: UIActivityIndicatorView, context: UIViewRepresentableContext<SwiftUIActivityIndicator>) {
         isAnimating ? uiView.startAnimating() : uiView.stopAnimating()
     }
 }

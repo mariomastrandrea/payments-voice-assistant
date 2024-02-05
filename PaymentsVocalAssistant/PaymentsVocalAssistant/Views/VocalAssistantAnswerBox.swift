@@ -20,7 +20,7 @@ struct VocalAssistantAnswerBox: View {
     
     var body: some View {
         VStack {
-            TypewriterText(self.assistantAnswer)
+            TypewriterText(self.assistantAnswer) {}
         }
         .foregroundColor(self.textColor)
         .padding(.all, 18)

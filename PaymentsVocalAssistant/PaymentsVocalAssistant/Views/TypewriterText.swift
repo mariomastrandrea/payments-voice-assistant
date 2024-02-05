@@ -12,8 +12,7 @@ class TextWrapper: ObservableObject {
     @Published var text: String = ""
 }
 
-struct TypewriterText: View {
-    static let defaultSpeed: TimeInterval = 0.02
+public struct TypewriterText<NextContent:View> : View {
     var speed: TimeInterval  // Speed of the typewriter effect
 
     @ObservedObject private var textWrapper = TextWrapper()
@@ -21,19 +20,25 @@ struct TypewriterText: View {
     @State private var charIndex: Int = 0
     
     @State private var timerSubscription: AnyCancellable?
+    @State private var typingEnded: Bool = false
+    
     private let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+    private var next: NextContent
     
     
-    init(_ text: String, speed: TimeInterval = defaultSpeed) {
+    public init(_ text: String, speed: TimeInterval = 0.02, @ViewBuilder next: () -> NextContent) {
         self.speed = speed
+        self.next = next()
         self.textWrapper.text = text
+        self.typingEnded = false
     }
         
-    var body: some View {
+    public var body: some View {
         Text(self.displayedText)
             .onReceive(self.textWrapper.$text) { newText in
                 self.displayedText = ""
                 self.charIndex = 0
+                self.typingEnded = false
                 
                 self.feedbackGenerator.prepare()
                 let timer = Timer.publish(every: self.speed, on: .main, in: .common).autoconnect()
@@ -54,15 +59,23 @@ struct TypewriterText: View {
                         self.feedbackGenerator.impactOccurred()
                         // unsubscribe
                         self.timerSubscription?.cancel()
+                        
+                        self.typingEnded = true
                     }
                 }
             }
             .onDisappear {
                 self.timerSubscription?.cancel()
             }
+        
+        if self.typingEnded {
+            self.next
+        }
     }
 }
 
 #Preview {
-    TypewriterText("This is an example of text inside the Vocal assistant answer box")
+    TypewriterText(
+        "This is an example of text inside the Vocal assistant answer box"
+    ) {}
 }
