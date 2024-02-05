@@ -55,7 +55,6 @@ struct VocalAssistantRecButton: View {
             )
         )
         .cornerRadius(10)
-        .padding()
         .gesture(
             LongPressGesture(minimumDuration: longPressMinimumDurationInSec)
                 .onEnded { _ in

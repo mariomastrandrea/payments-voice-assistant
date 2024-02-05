@@ -71,6 +71,10 @@ public class ConversationManager {
         logInfo("User transcript: \"\(transcript)\"")
         let dstResponse = self.dst.request(transcript)
         
+        return await internalProcess(dstResponse: dstResponse)
+    }
+    
+    private func internalProcess(dstResponse: VocalAssistantResponse) async -> VocalAssistantResponse {
         if case .performInAppOperation(let userIntent, let successMessage, let failureMessage, _, let followUpQuestion) = dstResponse {
             // perform in app operation, construct the answer and return a new response
             
@@ -147,8 +151,34 @@ public class ConversationManager {
             // return a new performInAppOperation response replacing the answer with the new one
             return .performInAppOperation(userIntent: userIntent, successMessage: successMessage, failureMessage: failureMessage, answer: answer, followUpQuestion: followUpQuestion)
         }
+        else if case .askToChooseBankAccount(let bankAccounts, _, _) = dstResponse {
+            logInfo("Choose between bank accounts:\n\(bankAccounts.map{$0.description}.joined(separator: "\n"))")
+            return dstResponse
+        }
+        else if case .askToChooseContact(let contacts, _, _) = dstResponse {
+            logInfo("Choose between contacts:\n\(contacts.map{$0.description}.joined(separator: "\n"))")
+            return dstResponse
+        }
         else {
             return dstResponse
         }
+    }
+    
+    // user selections
+    
+    func userSelects(bankAccount: VocalAssistantBankAccount) async -> VocalAssistantResponse {
+        logInfo("• User selected \"\(bankAccount.name)\" account")
+        
+        let dstResponse = self.dst.select(bankAccount: bankAccount)
+        
+        return await internalProcess(dstResponse: dstResponse)
+    }
+    
+    func userSelects(contact: VocalAssistantContact) async -> VocalAssistantResponse {
+        logInfo("• User selected \"\(contact.description)\" contact")
+
+        let dstResponse = self.dst.select(contact: contact)
+        
+        return await internalProcess(dstResponse: dstResponse)
     }
 }

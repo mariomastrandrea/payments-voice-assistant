@@ -12,6 +12,8 @@ protocol DstState : CustomStringConvertible {
     
     var startSentence: String { get }
     
+    // * User speech intents *
+    
     func userExpressedNoneIntent(entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse
     
     func userExpressedCheckBalanceIntent(probability: Float32, entities: [PaymentsEntity], stateChanger: DstStateChanger) -> VocalAssistantResponse
@@ -25,6 +27,12 @@ protocol DstState : CustomStringConvertible {
     func userExpressedYesIntent(probability: Float32, stateChanger: DstStateChanger) -> VocalAssistantResponse
     
     func userExpressedNoIntent(probability: Float32, stateChanger: DstStateChanger) -> VocalAssistantResponse
+    
+    // * User selections *
+    
+    func userSelected(bankAccount: VocalAssistantBankAccount, stateChanger: DstStateChanger) -> VocalAssistantResponse
+    
+    func userSelected(contact: VocalAssistantContact, stateChanger: DstStateChanger) -> VocalAssistantResponse
 }
 
 

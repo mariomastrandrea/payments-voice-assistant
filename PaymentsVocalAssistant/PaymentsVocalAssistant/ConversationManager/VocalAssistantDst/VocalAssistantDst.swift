@@ -108,7 +108,34 @@ public class VocalAssistantDst: DstStateChanger {
         return response
     }
     
-    func changeDstState(to newDstState: DstState) {
+    /**
+     Used when the user tap on and select a specific bank account
+     */
+    func select(bankAccount: VocalAssistantBankAccount) -> VocalAssistantResponse {
+        let response = self.currentState.userSelected(
+            bankAccount: bankAccount,
+            stateChanger: self
+        )
+        
+        // log the current state
+        logInfo("Current DST state: \(self.currentState)")
+        
+        return response
+    }
+    
+    func select(contact: VocalAssistantContact) -> VocalAssistantResponse {
+        let response = self.currentState.userSelected(
+            contact: contact,
+            stateChanger: self
+        )
+        
+        // log the current state
+        logInfo("Current DST state: \(self.currentState)")
+        
+        return response
+    }
+    
+    internal func changeDstState(to newDstState: DstState) {
         self.currentState = newDstState
     }
 }

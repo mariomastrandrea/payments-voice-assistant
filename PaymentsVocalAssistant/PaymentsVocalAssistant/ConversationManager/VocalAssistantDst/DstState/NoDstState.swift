@@ -134,4 +134,14 @@ class NoDstState: DstState {
         self.lastResponse = response
         return response
     }
+    
+    func userSelected(bankAccount: VocalAssistantBankAccount, stateChanger: DstStateChanger) -> VocalAssistantResponse {
+        // TODO: implement method
+        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+    }
+    
+    func userSelected(contact: VocalAssistantContact, stateChanger: DstStateChanger) -> VocalAssistantResponse {
+        // TODO: implement method
+        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+    }
 }

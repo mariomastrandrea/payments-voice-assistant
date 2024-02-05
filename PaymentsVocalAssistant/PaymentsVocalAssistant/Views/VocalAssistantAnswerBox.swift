@@ -27,7 +27,6 @@ struct VocalAssistantAnswerBox: View {
         .frame(maxWidth: .infinity, minHeight: 55, alignment: .leading)
         .background(self.boxBackground)
         .cornerRadius(10)
-        .padding(.horizontal, 20)   // this is a margin
     }
 }
 

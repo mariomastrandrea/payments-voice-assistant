@@ -175,7 +175,7 @@ extension String {
         }
         
         let similarity = Double(numSameChars) / Double(maxCount)
-        logInfo("Computed similarity between \"\(self)\" and \"\(literal)\": \(similarity)")
+        // logInfo("Computed similarity between \"\(self)\" and \"\(literal)\": \(similarity)")
         
         return similarity
     }

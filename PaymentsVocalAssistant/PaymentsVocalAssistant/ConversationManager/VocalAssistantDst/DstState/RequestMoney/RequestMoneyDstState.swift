@@ -772,32 +772,6 @@ class RequestMoneyDstState: DstState {
         
         // (here amount is specified and there are >= 1 specified senders)
         
-        if matchingBankAccounts.isEmpty {
-            // ask to specify the bank account and go to a new Request Money state, with any relevant state info
-            
-            // save the sender only if it has been perfectly matched with only one contact
-            let eventualMatchingSender = matchingSenders.count == 1 ? matchingSenders[0] : nil
-            
-            let response: VocalAssistantResponse = .justAnswer(
-                answer: matchingNotFoundMessage.isEmpty ? "Ok." : matchingNotFoundMessage,
-                followUpQuestion: "Which of your bank accounts do you want to use?\nYour bank accounts are at: \(self.appContext.userBankAccounts.map{$0.description}.joinGrammatically())"
-            )
-            
-            let newState = WaitBankAccountRequestMoneyDstState(
-                firstResponse: response,
-                appContext: self.appContext,
-                amount: matchingAmount,
-                sender: eventualMatchingSender,
-                bankAccount: nil
-            )
-            
-            stateChanger.changeDstState(to: newState)
-            return response
-        }
-        
-        // here every info is specified, but sender and bank account might have more than one match
-        // (precedence to sender)
-        
         if matchingSenders.areMoreThanOne {
             // ask to choose among matching contacts, and go to a new Request Money state, with any relevant state info, and eventually checking that the currency is coherent with the bank account
             
@@ -844,7 +818,34 @@ class RequestMoneyDstState: DstState {
             return response
         }
         
+        // here the matching sender is just 1
         let matchingSender = matchingSenders[0]
+        
+        // now check the matching bank accounts
+        
+        if matchingBankAccounts.isEmpty {
+            // ask to specify the bank account and go to a new Request Money state, with any relevant state info
+            
+            // save the sender only if it has been perfectly matched with only one contact
+            let eventualMatchingSender = matchingSenders.count == 1 ? matchingSenders[0] : nil
+            
+            let response: VocalAssistantResponse = .justAnswer(
+                answer: matchingNotFoundMessage.isEmpty ? "Ok." : matchingNotFoundMessage,
+                followUpQuestion: "Which of your bank accounts do you want to use?\nYour bank accounts are at: \(self.appContext.userBankAccounts.map{$0.description}.joinGrammatically())"
+            )
+            
+            let newState = WaitBankAccountRequestMoneyDstState(
+                firstResponse: response,
+                appContext: self.appContext,
+                amount: matchingAmount,
+                sender: eventualMatchingSender,
+                bankAccount: nil
+            )
+            
+            stateChanger.changeDstState(to: newState)
+            return response
+        }
+      
         // here both amount and sender have been specified, but the matching bank accounts might be more than one
         
         // check that the matching bank accounts have all the same currency as the specified one
@@ -932,5 +933,15 @@ class RequestMoneyDstState: DstState {
         )
         self.lastResponse = response
         return response
+    }
+    
+    func userSelected(bankAccount: VocalAssistantBankAccount, stateChanger: DstStateChanger) -> VocalAssistantResponse {
+        // TODO: implement method
+        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+    }
+    
+    func userSelected(contact: VocalAssistantContact, stateChanger: DstStateChanger) -> VocalAssistantResponse {
+        // TODO: implement method
+        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
     }
 }

@@ -14,6 +14,14 @@ public struct PaymentsVocalAssistantView: View {
     @State private var isAssistantInitialized: Bool = false
     @State private var isRecordingInProgress: Bool = false
     
+    @State private var chooseAmongBankAccountsFlag: Bool = false
+    @State private var bankAccountsList: [VocalAssistantBankAccount] = []
+    @State private var chooseAmongContactsFlag: Bool = false
+    @State private var contactsList: [VocalAssistantContact] = []
+    
+    @State private var appErrorFlag: Bool = false
+    @State private var appError: String = ""
+    
     // app state
     private let appContext: AppContext
     private let appDelegate: PaymentsVocalAssistantDelegate
@@ -49,6 +57,47 @@ public struct PaymentsVocalAssistantView: View {
                         textColor: self.config.assistantAnswerBoxTextColor,
                         boxBackground: self.config.assistantAnswerBoxBackground
                     )
+                    
+                    if self.chooseAmongContactsFlag && self.contactsList.isNotEmpty {
+                        VocalAssistantSelectionList(
+                            elements: self.contactsList,
+                            color: self.config.assistantAnswerBoxBackground,
+                            onTap: { contact in
+                                Task {
+                                    let assistantResponse = await self.conversationManager.userSelects(contact: contact)
+                                    
+                                    self.launchTaskToReactTo(assistantResponse: assistantResponse)
+                                }
+                            }
+                        )
+                        .padding(.vertical, 20)
+                    }
+                    
+                    if self.chooseAmongBankAccountsFlag && self.bankAccountsList.isNotEmpty {
+                        VocalAssistantSelectionList(
+                            elements: self.bankAccountsList,
+                            color: self.config.assistantAnswerBoxBackground,
+                            onTap: { bankAccount in
+                                Task {
+                                    let assistantResponse = await self.conversationManager.userSelects(bankAccount: bankAccount)
+                                    
+                                    self.launchTaskToReactTo(assistantResponse: assistantResponse)
+                                }
+                            }
+                        )
+                        .padding(.vertical, 20)
+                    }
+                    
+                    if self.appErrorFlag && self.appError.isNotEmpty {
+                        VStack {
+                            Text(self.appError)
+                        }
+                        .foregroundColor(self.config.assistantAnswerBoxTextColor)
+                        .padding(.all, 18)
+                        .frame(maxWidth: .infinity, minHeight: 55, alignment: .leading)
+                        .background(Color.red.opacity(0.7))
+                        .cornerRadius(10)
+                    }
                 }
                 
                 Spacer()
@@ -71,19 +120,13 @@ public struct PaymentsVocalAssistantView: View {
                         Task {
                             let assistantResponse = await self.conversationManager.processAndPlayResponse()
                             
-                            Task { @MainActor in
-                                self.isRecordingInProgress = false
-                                self.assistantAnswerText = assistantResponse.completeAnswer
-                                
-                                // TODO: switch over the response and :
-                                // - make some views appear if user has to choose among accounts or among contacts,
-                                // - log/show error if there is an app error
-                            }
+                            self.launchTaskToReactTo(assistantResponse: assistantResponse)
                         }
                     }
                 )
             }
             .padding(.bottom, 20)
+            .padding(.horizontal, 20)
             .background(self.config.backgroundColor)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
@@ -120,6 +163,38 @@ public struct PaymentsVocalAssistantView: View {
             self.assistantAnswerText = self.conversationManager.startConversation()
             self.isAssistantInitialized = true
             logSuccess("vocal assistant initialized")
+        }
+    }
+    
+    private func launchTaskToReactTo(assistantResponse: VocalAssistantResponse) {
+        Task { @MainActor in
+            self.isRecordingInProgress = false
+            self.assistantAnswerText = assistantResponse.completeAnswer
+            
+            // reset state
+            self.appError = ""
+            self.appErrorFlag = false
+            self.contactsList = []
+            self.chooseAmongContactsFlag = false
+            self.bankAccountsList = []
+            self.chooseAmongBankAccountsFlag = false
+            
+            // show/hide list or error
+            switch assistantResponse {
+            case .appError(let errorMessage, _, _):
+                self.appError = errorMessage
+                self.appErrorFlag = true
+            case .justAnswer(_, _):
+                break
+            case .askToChooseContact(let contacts, _, _):
+                self.contactsList = contacts
+                self.chooseAmongContactsFlag = true
+            case .askToChooseBankAccount(let bankAccounts, _, _):
+                self.bankAccountsList = bankAccounts
+                self.chooseAmongBankAccountsFlag = true
+            case .performInAppOperation(_, _, _, _, _):
+                break
+            }
         }
     }
 }

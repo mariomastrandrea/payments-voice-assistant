@@ -76,8 +76,8 @@ public enum VocalAssistantResponse {
     static func sendMoneyOperation(amount: VocalAssistantAmount, recipient: VocalAssistantContact, bankAccount: VocalAssistantBankAccount) -> Self {
         return .performInAppOperation(
             userIntent: .sendMoney(amount: amount, recipient: recipient, sourceAccount: bankAccount),
-            successMessage: "Your \(amount.descriptionWithoutSign) amount has been successfully sent to \(recipient) using your \(bankAccount.name) account",
-            failureMessage: "I'm sorry, but I encountered an unexpected error while sending \(amount.descriptionWithoutSign) to \(recipient) using your \(bankAccount.name) account. Reason: {errorMsg}",
+            successMessage: "Your \(amount.descriptionWithoutSign) amount has been successfully sent to \(recipient) using your \(bankAccount.name) account.",
+            failureMessage: "I'm sorry, but I encountered an unexpected error while sending \(amount.descriptionWithoutSign) to \(recipient) using your \(bankAccount.name) account. Reason: {errorMsg}.",
             answer: "",
             followUpQuestion: "Is there anything else I can do for you?"
         )
@@ -86,8 +86,8 @@ public enum VocalAssistantResponse {
     static func requestMoneyOperation(amount: VocalAssistantAmount, sender: VocalAssistantContact, bankAccount: VocalAssistantBankAccount) -> Self {
         return .performInAppOperation(
             userIntent: .requestMoney(amount: amount, sender: sender, destinationAccount: bankAccount),
-            successMessage: "Your \(amount.descriptionWithoutSign) amount has been successfully requested from \(sender) using your \(bankAccount.name) account",
-            failureMessage: "I'm sorry, but I encountered an unexpected error while requesting \(amount.descriptionWithoutSign) from \(sender) using your \(bankAccount.name) account. Reason: {errorMsg}",
+            successMessage: "Your \(amount.descriptionWithoutSign) amount has been successfully requested from \(sender) using your \(bankAccount.name) account.",
+            failureMessage: "I'm sorry, but I encountered an unexpected error while requesting \(amount.descriptionWithoutSign) from \(sender) using your \(bankAccount.name) account. Reason: {errorMsg}.",
             answer: "",
             followUpQuestion: "Is there anything else I can do for you?"
         )

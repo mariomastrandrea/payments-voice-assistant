@@ -95,6 +95,25 @@ class WaitBankAccountRequestMoneyDstState: RequestMoneyDstState {
             return response
         }
         
+        // if the amount was already specified...
+        if let alreadySpecifiedAmount = self.amount {
+            // ...check that the matching bank accounts have all the same currency as the specified one
+            matchingBankAccounts = matchingBankAccounts.filter { $0.currency == alreadySpecifiedAmount.currency }
+            
+            guard matchingBankAccounts.isNotEmpty else {
+                // all the matching accounts have a different currency than the one mentioned by the user
+                
+                let response: VocalAssistantResponse = .askToChooseBankAccount(
+                    bankAccounts: self.appContext.userBankAccounts.filter { $0.currency == alreadySpecifiedAmount.currency },
+                    answer: "Ok, but the mentioned bank account is not in \(alreadySpecifiedAmount.currency.literalPlural). Please specify a bank account with a coherent currency.",
+                    followUpQuestion: "Which of your bank accounts do you want to use to request that money?"
+                )
+                
+                self.lastResponse = response
+                return response
+            }
+        }
+        
         if matchingBankAccounts.areMoreThanOne {
             // maintain the state and ask the user to choose one
             let response: VocalAssistantResponse = .chooseBankAccount(among: matchingBankAccounts)

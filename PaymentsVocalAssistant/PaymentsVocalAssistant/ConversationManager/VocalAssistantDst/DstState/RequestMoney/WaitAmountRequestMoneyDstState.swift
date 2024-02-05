@@ -100,6 +100,21 @@ class WaitAmountRequestMoneyDstState: RequestMoneyDstState {
         
         // * amount correctly specified by the user *
         
+        // if the bank account was already specified...
+        if let alreadySpecifiedBankAccount = self.bankAccount {
+            // check that the specified amount currency is coherent with the bank account
+            if alreadySpecifiedBankAccount.currency != matchingAmount.currency {
+                // currencies are not coherent
+                let response: VocalAssistantResponse = .justAnswer(
+                    answer: "Ok, but the mentioned amount is in \(matchingAmount.currency.literalPlural) and your \(alreadySpecifiedBankAccount.name) account is in \(alreadySpecifiedBankAccount.currency.literalPlural). Please specify an amount with a coherent currency.",
+                    followUpQuestion: "How much do you want to request?"
+                )
+                
+                self.lastResponse = response
+                return response
+            }
+        }
+        
         // check for any old sender
         guard let alreadySpecifiedSender = self.sender else {
             // go to Wait Sender Request Money state and save the matching amount

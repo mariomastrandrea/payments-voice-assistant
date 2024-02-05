@@ -10,7 +10,7 @@ import Foundation
 /** Object representing a unique bank account of the user for the `PaymentsVocalAssistant`
  
     It is characterized by a `name` property which will be used by the vocal assistant to identify the requested user in the speeches */
-public struct VocalAssistantBankAccount: CustomStringConvertible, Hashable {
+public struct VocalAssistantBankAccount: CustomStringConvertible, Hashable, Identifiable {
     /** Unique id of the bank account in the app context */
     public let id: String
     

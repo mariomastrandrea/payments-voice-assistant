@@ -20,7 +20,7 @@ struct VocalAssistantTitle: View {
         Text(title)
             .foregroundColor(color)
             .bold()
-            .padding(.horizontal, 28)
+            .padding(.horizontal, 8)
             .padding(.vertical, 18)
             .font(Font.title)
     }

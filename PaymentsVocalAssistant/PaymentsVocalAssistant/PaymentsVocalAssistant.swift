@@ -49,7 +49,7 @@ public class PaymentsVocalAssistant {
             surnames: appContext.userContacts.compactMap { $0.lastName.isEmpty ? nil : $0.lastName },
             banks: appContext.userBankAccounts.map { $0.name }
         )
-        
+         
         // initialize speech synthesizer
         self.speechSynthesizer = SpeechSynthesizer()
         
