@@ -171,7 +171,14 @@ public class ConversationManager {
         
         let dstResponse = self.dst.select(bankAccount: bankAccount)
         
-        return await internalProcess(dstResponse: dstResponse)
+        // process response
+        let response = await internalProcess(dstResponse: dstResponse)
+
+        // play the response out loud and return it
+        self.speechSyntesizer.speak(text: response.completeAnswer)
+        logInfo(response.completeAnswer)
+        
+        return response
     }
     
     func userSelects(contact: VocalAssistantContact) async -> VocalAssistantResponse {
@@ -179,6 +186,13 @@ public class ConversationManager {
 
         let dstResponse = self.dst.select(contact: contact)
         
-        return await internalProcess(dstResponse: dstResponse)
+        // process response
+        let response = await internalProcess(dstResponse: dstResponse)
+
+        // play the response out loud and return it
+        self.speechSyntesizer.speak(text: response.completeAnswer)
+        logInfo(response.completeAnswer)
+        
+        return response
     }
 }
