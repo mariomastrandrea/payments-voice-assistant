@@ -10,58 +10,59 @@ import PaymentsVocalAssistant
 import Contacts
 
 @main
-struct PaymentsVocalAssistant_testAppApp: App {
+struct TestAppMainView: App {
     let contactStore: CNContactStore
     
-    @State private var userContacts: [VocalAssistantContact] = []
-    @State private var userBankAccounts: [VocalAssistantBankAccount] = []
-    
-    @State private var contactsInitializationCompleted: Bool = false
-    @State private var bankAccountsInitializationCompleted: Bool = false
-    
-    private var initializationCompleted: Bool {
-        return self.contactsInitializationCompleted && self.bankAccountsInitializationCompleted
-    }
+    @State private var appContext: AppContext? = nil
+    @State private var initErrorMessage: String? = nil
+    @State private var appInitializationCompleted: Bool = false
     
     init() {
         self.contactStore = CNContactStore()
+        self.appContext = nil
+        self.initErrorMessage = nil
+        self.appInitializationCompleted = false
     }
     
     var body: some Scene {
         WindowGroup {
-            
-            if !self.initializationCompleted {
-                VocalAssistantActivityIndicator()
-                    .onAppear { self.initContactsAndBankAccounts() }
+            if self.appInitializationCompleted {
+                PaymentsVocalAssistantView(
+                    appContext: self.appContext,
+                    appDelegate: AppDelegateStub(),
+                    initErrorMessage: self.initErrorMessage
+                )
             }
             else {
-                PaymentsVocalAssistantView(
-                    appContext: AppContext(
-                        userContacts: userContacts,
-                        userBankAccounts: userBankAccounts
-                    ),
-                    appDelegate: AppDelegateStub()
-                )
+                VocalAssistantActivityIndicator()
+                    .onAppear { self.initContactsAndBankAccounts() }
             }
         }
     }
     
     private func initContactsAndBankAccounts() {
         Task {
-            let contacts = await self.fetchContacts()
-            
-            if let contacts = contacts {
-                Task { @MainActor in
-                    self.userContacts = contacts
-                    self.contactsInitializationCompleted = true
-                }
-            }
-            
+            // generate fake bank accounts
             let bankAccounts = self.simulateBankAccounts()
             
+            // fetch contacts
+            let contacts = await self.fetchContacts()
+            
+            guard let contacts = contacts else {
+                Task { @MainActor in
+                    // an error occurred retrieving contacts
+                    self.initErrorMessage = "Sorry, an error occurred in accessing your contacts, we apologize for the inconvenience. Please exit and try again later.\nIf the error persists, check in your System Preferences that this app has the 'Contacts' permission."
+                    self.appInitializationCompleted = true
+                }
+                return
+            }
+            
             Task { @MainActor in
-                self.userBankAccounts = bankAccounts
-                self.bankAccountsInitializationCompleted = true
+                self.appContext = AppContext(
+                    userContacts: contacts,
+                    userBankAccounts: bankAccounts
+                )
+                self.appInitializationCompleted = true
             }
         }
     }

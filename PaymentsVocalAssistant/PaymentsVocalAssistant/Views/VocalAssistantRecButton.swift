@@ -42,16 +42,16 @@ struct VocalAssistantRecButton: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(height: 24)
-                .foregroundColor(self.textColor)
+                .foregroundColor(self.textColor.opacity(self.disabled ? 0.5 : 1.0))
             Text(self.text)
-                .foregroundColor(self.textColor)
+                .foregroundColor(self.textColor.opacity(self.disabled ? 0.5 : 1.0))
                 .font(.headline)
         }
         .frame(maxWidth: .infinity)
         .padding(20)
         .background(
             self.fillColor.opacity(
-                self.disabled ? 0.6 : self.isRecPressed ? 0.7 : 1.0
+                self.disabled ? 0.4 : self.isRecPressed ? 0.7 : 1.0
             )
         )
         .cornerRadius(10)

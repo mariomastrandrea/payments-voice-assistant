@@ -936,12 +936,24 @@ class RequestMoneyDstState: DstState {
     }
     
     func userSelected(bankAccount: VocalAssistantBankAccount, stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+        let response: VocalAssistantResponse = .appError(
+            errorMessage: "An unexpected action occurred: user selected \(bankAccount.name) account",
+            answer: "Sorry, I cannot help you with that.",
+            followUpQuestion: self.lastResponse.followUpQuestion
+        )
+        self.lastResponse = response
+        
+        return response
     }
     
     func userSelected(contact: VocalAssistantContact, stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+        let response: VocalAssistantResponse = .appError(
+            errorMessage: "An unexpected action occurred: user selected \(contact) contact",
+            answer: "Sorry, I cannot help you with that.",
+            followUpQuestion: self.lastResponse.followUpQuestion
+        )
+        self.lastResponse = response
+        
+        return response
     }
 }

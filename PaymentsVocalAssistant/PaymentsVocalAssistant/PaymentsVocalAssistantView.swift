@@ -11,8 +11,11 @@ public struct PaymentsVocalAssistantView: View {
     // View state
     @State private var conversationManager: ConversationManager!
     @State private var assistantAnswerText: String = ""
+    
     @State private var isAssistantInitialized: Bool = false
     @State private var isRecordingInProgress: Bool = false
+    @State private var initErrorOccurred: Bool = false
+    @State private var assistantInitErrorMessage: String = ""
     
     @State private var chooseAmongBankAccountsFlag: Bool = false
     @State private var bankAccountsList: [VocalAssistantBankAccount] = []
@@ -23,19 +26,34 @@ public struct PaymentsVocalAssistantView: View {
     @State private var appError: String = ""
     
     // app state
-    private let appContext: AppContext
-    private let appDelegate: PaymentsVocalAssistantDelegate
+    private let appContext: AppContext?
+    private let appDelegate: PaymentsVocalAssistantDelegate?
+    private let initErrorMessage: String
     private let config: VocalAssistantCustomConfig
 
     
     public init(
-        appContext: AppContext,
-        appDelegate: PaymentsVocalAssistantDelegate,
+        appContext: AppContext?,
+        appDelegate: PaymentsVocalAssistantDelegate?,
+        initErrorMessage: String?,
         config: VocalAssistantCustomConfig = VocalAssistantCustomConfig()
     ) {
         self.appContext = appContext
         self.appDelegate = appDelegate
+        self.initErrorMessage = initErrorMessage ?? "An unexpected error occurred"
         self.config = config
+    
+        self.assistantAnswerText = ""
+        self.isAssistantInitialized = false
+        self.isRecordingInProgress = false
+        self.initErrorOccurred = false
+        self.assistantInitErrorMessage = ""
+        self.chooseAmongBankAccountsFlag = false
+        self.bankAccountsList = []
+        self.chooseAmongContactsFlag = false
+        self.contactsList = []
+        self.appErrorFlag = false
+        self.appError = ""
     }
     
     public var body: some View {
@@ -48,10 +66,7 @@ public struct PaymentsVocalAssistantView: View {
                     self.initializeVocalAssistant()
                 }
                 
-                if !self.isAssistantInitialized {
-                    VocalAssistantActivityIndicator()
-                }
-                else {
+                if self.isAssistantInitialized {
                     VocalAssistantAnswerBox(
                         assistantAnswer: self.assistantAnswerText,
                         textColor: self.config.assistantAnswerBoxTextColor,
@@ -99,6 +114,16 @@ public struct PaymentsVocalAssistantView: View {
                         .cornerRadius(10)
                     }
                 }
+                else if self.initErrorOccurred {
+                    VocalAssistantAnswerBox(
+                        assistantAnswer: self.assistantInitErrorMessage,
+                        textColor: self.config.assistantAnswerBoxTextColor,
+                        boxBackground: self.config.assistantAnswerBoxBackground
+                    )
+                }
+                else {
+                    VocalAssistantActivityIndicator()
+                }
                 
                 Spacer()
                 
@@ -109,7 +134,7 @@ public struct PaymentsVocalAssistantView: View {
                     text: self.config.recButtonText,
                     textColor: self.config.recButtonForegroundColor,
                     fillColor: self.config.recButtonFillColor,
-                    longPressStartAction: {
+                    longPressStartAction: {                        
                         self.conversationManager.startListening()
                         
                         Task { @MainActor in
@@ -143,13 +168,20 @@ public struct PaymentsVocalAssistantView: View {
     
     private func initializeVocalAssistant() {
         Task { @MainActor in
+            // check that all the Assistant dependencies are correctly injected
+            guard let appContext = self.appContext, let appDelegate = self.appDelegate else {
+                self.assistantInitErrorMessage = self.initErrorMessage
+                self.initErrorOccurred = true
+                return
+            }
+            
             // instantiate the PaymentsVocalAssistant
-            guard let vocalAssistant = await PaymentsVocalAssistant.instance(appContext: self.appContext) else {
+            guard let vocalAssistant = await PaymentsVocalAssistant.instance(appContext: appContext) else {
                 // initialization error occurred
-                self.assistantAnswerText = self.config.initializationErrorMessage
+                self.assistantInitErrorMessage = self.config.assistantInitializationErrorMessage
                 
                 logError("PaymentsVocalAssistant is nil after getting singleton instance")
-                self.isAssistantInitialized = true
+                self.initErrorOccurred = true
                 return
             }
             
@@ -157,7 +189,7 @@ public struct PaymentsVocalAssistantView: View {
             self.conversationManager = vocalAssistant.newConversation(
                 withMessage: self.config.startConversationQuestion,
                 andDefaultErrorMessage: self.config.errorResponse,
-                appDelegate: self.appDelegate
+                appDelegate: appDelegate
             )
             
             self.assistantAnswerText = self.conversationManager.startConversation()
@@ -202,6 +234,7 @@ public struct PaymentsVocalAssistantView: View {
 #Preview {
     PaymentsVocalAssistantView(
         appContext: AppContext.default,
-        appDelegate: AppDelegateStub()
+        appDelegate: AppDelegateStub(),
+        initErrorMessage: nil
     )
 }

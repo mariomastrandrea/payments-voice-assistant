@@ -38,7 +38,7 @@ public enum DefaultVocalAssistantConfig {
     
     // sentences
     public static let defaultStartConversation = "Hi! I can assist you performing some money operations inside the app."
-    public static let defaultInitializationErrorMessage = "Sorry, an error occurred during my initialization, we apologize for the inconvenience. Exit and try again later.\nIf the error persist, check on your System Preferences that this app has both 'Speech Recognition' and 'Microphone' permissions granted"
+    public static let defaultAssistantInitializationErrorMessage = "Sorry, an error occurred during my initialization, we apologize for the inconvenience. Please exit and try again later.\nIf the error persists, check in your System Preferences that this app has both 'Speech Recognition' and 'Microphone' permissions."
     public static let defaultErrorResponse = "Sorry, an error occurred processing your request. Let's try again."
     
     enum DST {
@@ -68,7 +68,7 @@ public struct VocalAssistantCustomConfig {
     
     // sentences
     let startConversationQuestion: String
-    let initializationErrorMessage: String
+    let assistantInitializationErrorMessage: String
     let errorResponse: String
     
     
@@ -83,7 +83,7 @@ public struct VocalAssistantCustomConfig {
         recButtonFillColor: Color = DefaultVocalAssistantConfig.defaultRecButtonFillColor,
         recButtonForegroundColor: Color = DefaultVocalAssistantConfig.defaultRecButtonForegroundColor,
         startConversationQuestion: String = DefaultVocalAssistantConfig.defaultStartConversation,
-        initializationErrorMessage: String = DefaultVocalAssistantConfig.defaultInitializationErrorMessage,
+        assistantInitializationErrorMessage: String = DefaultVocalAssistantConfig.defaultAssistantInitializationErrorMessage,
         errorResponse: String = DefaultVocalAssistantConfig.defaultErrorResponse
     ) {
         self.backgroundColor = backgroundColor
@@ -100,7 +100,7 @@ public struct VocalAssistantCustomConfig {
         self.recButtonForegroundColor = recButtonForegroundColor
         
         self.startConversationQuestion = startConversationQuestion
-        self.initializationErrorMessage = initializationErrorMessage
+        self.assistantInitializationErrorMessage = assistantInitializationErrorMessage
         self.errorResponse = errorResponse
     }
 }

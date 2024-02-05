@@ -329,12 +329,36 @@ class CheckTransactionsDstState: DstState {
     }
     
     func userSelected(bankAccount: VocalAssistantBankAccount, stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+        let response: VocalAssistantResponse = .checkTransactionsOperation(
+            bankAccount: bankAccount,
+            contact: self.contact
+        )
+        
+        let newState = CheckTransactionsDstState(
+            firstResponse: response,
+            appContext: self.appContext,
+            bankAccount: bankAccount,
+            contact: self.contact
+        )
+        
+        stateChanger.changeDstState(to: newState)
+        return response
     }
     
     func userSelected(contact: VocalAssistantContact, stateChanger: DstStateChanger) -> VocalAssistantResponse {
-        // TODO: implement method
-        return .appError(errorMessage: "todo", answer: "todo", followUpQuestion: "todo")
+        let response: VocalAssistantResponse = .checkTransactionsOperation(
+            bankAccount: self.bankAccount,
+            contact: contact
+        )
+        
+        let newState = CheckTransactionsDstState(
+            firstResponse: response,
+            appContext: self.appContext,
+            bankAccount: self.bankAccount,
+            contact: contact
+        )
+        
+        stateChanger.changeDstState(to: newState)
+        return response
     }
 }

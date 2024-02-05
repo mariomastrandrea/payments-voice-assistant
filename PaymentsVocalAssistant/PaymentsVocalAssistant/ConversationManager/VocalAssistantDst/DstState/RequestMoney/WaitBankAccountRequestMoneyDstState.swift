@@ -187,4 +187,70 @@ class WaitBankAccountRequestMoneyDstState: RequestMoneyDstState {
         stateChanger.changeDstState(to: newConfirmationState)
         return response
     }
+    
+    override func userSelected(bankAccount: VocalAssistantBankAccount, stateChanger: DstStateChanger) -> VocalAssistantResponse {
+        let selectedBankAccount = bankAccount
+        
+        // check for any old amount
+        guard let alreadySpecifiedAmount = self.amount else {
+            // go to Wait Amount Request Money state and save the matching bank account and any eventual old sender
+            
+            let response: VocalAssistantResponse = .justAnswer(
+                answer: "Ok.",
+                followUpQuestion: "How much do you want to request?"
+            )
+            
+            let newState = WaitAmountRequestMoneyDstState(
+                firstResponse: response,
+                appContext: self.appContext,
+                amount: nil,
+                sender: self.sender,
+                bankAccount: selectedBankAccount
+            )
+            
+            stateChanger.changeDstState(to: newState)
+            return response
+        }
+        
+        // check for any old sender
+        guard let alreadySpecifiedSender = self.sender else {
+            // go to Wait Sender Request Money state and save the matching bank account
+            
+            let response: VocalAssistantResponse = .justAnswer(
+                answer: "Ok.",
+                followUpQuestion: "Who do you want to request the money from?"
+            )
+            
+            let newState = WaitBankAccountRequestMoneyDstState(
+                firstResponse: response,
+                appContext: self.appContext,
+                amount: alreadySpecifiedAmount,
+                sender: nil,
+                bankAccount: selectedBankAccount
+            )
+            
+            stateChanger.changeDstState(to: newState)
+            return response
+        }
+        
+        // * all the three entities have been specified -> go to confirmation stage *
+        
+        let response: VocalAssistantResponse = .requestMoneyConfirmationQuestion(
+            answer: "Got it.",
+            amount: alreadySpecifiedAmount,
+            sender: alreadySpecifiedSender,
+            destinationBankAccount: selectedBankAccount
+        )
+        
+        let newConfirmationState = ConfirmationRequestMoneyDstState(
+            lastResponse: response,
+            amountToConfirm: alreadySpecifiedAmount,
+            senderToConfirm: alreadySpecifiedSender,
+            destinationBankAccountToConfirm: selectedBankAccount,
+            appContext: self.appContext
+        )
+        
+        stateChanger.changeDstState(to: newConfirmationState)
+        return response
+    }
 }

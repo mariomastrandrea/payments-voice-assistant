@@ -180,3 +180,9 @@ extension String {
         return similarity
     }
 }
+
+extension Int {
+    func toDouble() -> Double {
+        return Double(self)
+    }
+}

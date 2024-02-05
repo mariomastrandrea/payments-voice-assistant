@@ -30,9 +30,7 @@ struct VocalAssistantSelectionList<T>: View
                         Task { @MainActor in
                             feedbackGenerator.impactOccurred()
                             
-                            Task {
-                                elementCallbak(element)
-                            }
+                            elementCallbak(element)
                         }
                     }) {
                         HStack(alignment: .center, content: {
