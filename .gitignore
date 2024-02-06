@@ -3,6 +3,10 @@ model/
 model/**
 model/**/*
 
+release/
+release/**
+release/**/*
+
 
 ### macOS ###
 # General

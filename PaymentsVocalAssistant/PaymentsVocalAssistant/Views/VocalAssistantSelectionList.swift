@@ -27,11 +27,8 @@ struct VocalAssistantSelectionList<T>: View
             VStack(spacing: 0, content: {
                 ForEach(self.elements) { element in
                     Button(action: {
-                        Task { @MainActor in
-                            feedbackGenerator.impactOccurred()
-                            
-                            elementCallbak(element)
-                        }
+                        feedbackGenerator.impactOccurred()
+                        elementCallbak(element)
                     }) {
                         HStack(alignment: .center, content: {
                             Text(element.description)

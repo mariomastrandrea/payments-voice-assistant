@@ -63,56 +63,13 @@ public struct PaymentsVocalAssistantView: View {
                     self.config.title,
                     color: self.config.titleTextColor
                 ).onAppear {
-                    self.initializeVocalAssistant()
+                    Task {
+                        await self.initializeVocalAssistant()
+                    }
                 }
                 
                 if self.isAssistantInitialized {
-                    VocalAssistantAnswerBox(
-                        assistantAnswer: self.assistantAnswerText,
-                        textColor: self.config.assistantAnswerBoxTextColor,
-                        boxBackground: self.config.assistantAnswerBoxBackground
-                    )
-                    
-                    if self.chooseAmongContactsFlag && self.contactsList.isNotEmpty {
-                        VocalAssistantSelectionList(
-                            elements: self.contactsList,
-                            color: self.config.assistantAnswerBoxBackground,
-                            onTap: { contact in
-                                Task {
-                                    let assistantResponse = await self.conversationManager.userSelects(contact: contact)
-                                    
-                                    self.launchTaskToReactTo(assistantResponse: assistantResponse)
-                                }
-                            }
-                        )
-                        .padding(.vertical, 20)
-                    }
-                    
-                    if self.chooseAmongBankAccountsFlag && self.bankAccountsList.isNotEmpty {
-                        VocalAssistantSelectionList(
-                            elements: self.bankAccountsList,
-                            color: self.config.assistantAnswerBoxBackground,
-                            onTap: { bankAccount in
-                                Task {
-                                    let assistantResponse = await self.conversationManager.userSelects(bankAccount: bankAccount)
-                                    
-                                    self.launchTaskToReactTo(assistantResponse: assistantResponse)
-                                }
-                            }
-                        )
-                        .padding(.vertical, 20)
-                    }
-                    
-                    if self.appErrorFlag && self.appError.isNotEmpty {
-                        VStack {
-                            Text(self.appError)
-                        }
-                        .foregroundColor(self.config.assistantAnswerBoxTextColor)
-                        .padding(.all, 18)
-                        .frame(maxWidth: .infinity, minHeight: 55, alignment: .leading)
-                        .background(Color.red.opacity(0.7))
-                        .cornerRadius(10)
-                    }
+                    answerBoxAndSelectionLists
                 }
                 else if self.initErrorOccurred {
                     VocalAssistantAnswerBox(
@@ -166,36 +123,85 @@ public struct PaymentsVocalAssistantView: View {
         .animation(.easeInOut, value: self.isRecordingInProgress) // Animate the appearance/disappearance of the microphone overlay
     }
     
-    private func initializeVocalAssistant() {
-        Task { @MainActor in
-            // check that all the Assistant dependencies are correctly injected
-            guard let appContext = self.appContext, let appDelegate = self.appDelegate else {
-                self.assistantInitErrorMessage = self.initErrorMessage
-                self.initErrorOccurred = true
-                return
-            }
-            
-            // instantiate the PaymentsVocalAssistant
-            guard let vocalAssistant = await PaymentsVocalAssistant.instance(appContext: appContext) else {
-                // initialization error occurred
-                self.assistantInitErrorMessage = self.config.assistantInitializationErrorMessage
-                
-                logError("PaymentsVocalAssistant is nil after getting singleton instance")
-                self.initErrorOccurred = true
-                return
-            }
-            
-            // create a new conversation with the specified opening message and error message
-            self.conversationManager = vocalAssistant.newConversation(
-                withMessage: self.config.startConversationQuestion,
-                andDefaultErrorMessage: self.config.errorResponse,
-                appDelegate: appDelegate
+    @ViewBuilder
+    private var answerBoxAndSelectionLists: some View {
+            VocalAssistantAnswerBox(
+                assistantAnswer: self.assistantAnswerText,
+                textColor: self.config.assistantAnswerBoxTextColor,
+                boxBackground: self.config.assistantAnswerBoxBackground
             )
             
-            self.assistantAnswerText = self.conversationManager.startConversation()
-            self.isAssistantInitialized = true
-            logSuccess("vocal assistant initialized")
+            if self.chooseAmongContactsFlag && self.contactsList.isNotEmpty {
+                VocalAssistantSelectionList(
+                    elements: self.contactsList,
+                    color: self.config.assistantAnswerBoxBackground,
+                    onTap: { contact in
+                        Task {
+                            let assistantResponse = await self.conversationManager.userSelects(contact: contact)
+                            
+                            self.launchTaskToReactTo(assistantResponse: assistantResponse)
+                        }
+                    }
+                )
+                .padding(.vertical, 20)
+            }
+            
+            if self.chooseAmongBankAccountsFlag && self.bankAccountsList.isNotEmpty {
+                VocalAssistantSelectionList(
+                    elements: self.bankAccountsList,
+                    color: self.config.assistantAnswerBoxBackground,
+                    onTap: { bankAccount in
+                        Task {
+                            let assistantResponse = await self.conversationManager.userSelects(bankAccount: bankAccount)
+                            
+                            self.launchTaskToReactTo(assistantResponse: assistantResponse)
+                        }
+                    }
+                )
+                .padding(.vertical, 20)
+            }
+            
+            if self.appErrorFlag && self.appError.isNotEmpty {
+                VStack {
+                    Text(self.appError)
+                }
+                .foregroundColor(self.config.assistantAnswerBoxTextColor)
+                .padding(.all, 18)
+                .frame(maxWidth: .infinity, minHeight: 55, alignment: .leading)
+                .background(Color.red.opacity(0.7))
+                .cornerRadius(10)
+            }
+        
+    }
+    
+    private func initializeVocalAssistant() async {
+        // check that all the Assistant dependencies are correctly injected
+        guard let appContext = self.appContext, let appDelegate = self.appDelegate else {
+            self.assistantInitErrorMessage = self.initErrorMessage
+            self.initErrorOccurred = true
+            return
         }
+        
+        // instantiate the PaymentsVocalAssistant
+        guard let vocalAssistant = await PaymentsVocalAssistant.instance(appContext: appContext) else {
+            // initialization error occurred
+            self.assistantInitErrorMessage = self.config.assistantInitializationErrorMessage
+            
+            logError("PaymentsVocalAssistant is nil after getting singleton instance")
+            self.initErrorOccurred = true
+            return
+        }
+        
+        // create a new conversation with the specified opening message and error message
+        self.conversationManager = vocalAssistant.newConversation(
+            withMessage: self.config.startConversationQuestion,
+            andDefaultErrorMessage: self.config.errorResponse,
+            appDelegate: appDelegate
+        )
+        
+        self.assistantAnswerText = self.conversationManager.startConversation()
+        self.isAssistantInitialized = true
+        logSuccess("vocal assistant initialized")
     }
     
     private func launchTaskToReactTo(assistantResponse: VocalAssistantResponse) {
