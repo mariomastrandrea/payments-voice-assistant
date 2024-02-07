@@ -19,7 +19,7 @@ enum BertConfig {
     }
     
     // ** Select BERT model **
-    static let selectedModel: ModelType = .medium
+    static let selectedModel: ModelType = .small
     
     static let sequenceLength = 128
     static let doLowerCase = true
