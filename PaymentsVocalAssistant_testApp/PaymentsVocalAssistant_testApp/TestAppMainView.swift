@@ -22,7 +22,9 @@ struct TestAppMainView: View {
     private static let contextDescription = """
     ✅  Test the performance of my Voice Assistant, which will then be integrated into an  application involving P2P payments 📲
     
-    ✅  You are a registered user with the two (fake) bank accounts at "Top Bank" and "Future Bank" 🏦
+    ✅  You are a registered user with the two (fake) bank accounts at "Top Bank", in dollars $, and "Future Bank" in dirhams AED (so you don't have a euro € account!) 🏦
+    
+    ✅  Imagine that your contacts are registered users too, and you can send to or request money from them 👥
     """
     
     private static let assistantDescription = """
