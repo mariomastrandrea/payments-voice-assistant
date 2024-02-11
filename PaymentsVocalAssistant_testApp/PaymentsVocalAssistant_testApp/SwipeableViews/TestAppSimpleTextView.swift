@@ -1,5 +1,5 @@
 //
-//  TestAppAssistantDescriptionView.swift
+//  TestAppGreetingsView.swift
 //  PaymentsVocalAssistant_testApp
 //
 //  Created by Mario Mastrandrea on 06/02/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct TestAppAssistantDescriptionView: View {
+struct TestAppSimpleTextView: View {
     private let text: String
     private let size: Double
     
@@ -27,8 +27,8 @@ struct TestAppAssistantDescriptionView: View {
 }
 
 #Preview {
-    TestAppAssistantDescriptionView(
-        text: "test TestAppAssistantDescriptionView",
+    TestAppSimpleTextView(
+        text: "test TestAppSimpleTextView",
         size: 15.5
     )
 }

@@ -43,6 +43,10 @@ public struct TypewriterText<NextContent:View> : View {
                 self.feedbackGenerator.prepare()
                 let timer = Timer.publish(every: self.speed, on: .main, in: .common).autoconnect()
                 
+                // cancel any previous timer
+                self.timerSubscription?.cancel()
+                
+                // set the new timer
                 self.timerSubscription = timer.sink { _ in
                     if self.charIndex < newText.count {
                         let index = newText.index(newText.startIndex, offsetBy: self.charIndex)

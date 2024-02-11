@@ -53,13 +53,13 @@ class SpeechRecognizer {
     init?() async {
         self.recognizer = SFSpeechRecognizer(locale: Locale(identifier: SpeechConfig.defaultLocaleId))
         
-        guard let recognizer = recognizer else {
+        guard let recognizer = recognizer, recognizer.isAvailable else {
             transcribe(SpeechRecognizerError.nilRecognizer)
             return nil
         }
         
-        // (from iOS 13 on Device Speech Recognition should be supported by any device)
         // check if on-device speech recognition is supported
+        // (but from iOS 13, on Device Speech Recognition should be supported by any device)
         if !recognizer.supportsOnDeviceRecognition {
             logError("Error: on-device speech recognition NOT supported")
         }

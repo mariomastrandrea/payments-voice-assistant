@@ -14,7 +14,7 @@ struct TestAppMainView: View {
     
     private static let greetingsDescription = """
     My name is Mario Mastrandrea and this is the test app for my Master's Thesis 🎓 in:
-       "Developing an AI-Powered Voice Assistant for an iOS Mobile Payment App"
+       "Developing an AI-Powered Voice Assistant for an iOS Payment App"
     
     Thank you for joining this test! 🙏🏻
     """
@@ -33,8 +33,13 @@ struct TestAppMainView: View {
         💰  request money from another user
         📈  check a bank account's balance
         💳  check the last transactions (eventually involving a specific user or bank account)
+    """
     
+    private static let assistantDetailsDescription = """
     ✅  The assistant works *entirely* on your device, from voice recognition to answer generation, without sending any data over the network (isn't that great?) ‼️
+        For this reason, it might be necessary to have English among your settings languages to work properly 💬
+        
+    ✅  If you also want a better (an more natural) voice, please download an English (US) *enhanced* voice in: Settings -> Accessibility -> Spoken Content -> Voices -> English (US) 🗣️
     """
     
     private static let formDescription = """
@@ -69,16 +74,20 @@ struct TestAppMainView: View {
                                 
                 VStack {
                     TabView {
-                        TestAppGreetingsView(
+                        TestAppSimpleTextView(
                             text: TestAppMainView.greetingsDescription,
                             size: TestAppMainView.descriptionFontSize
                         )
-                        TestAppContextDescriptionView(
+                        TestAppSimpleTextView(
                             text: TestAppMainView.contextDescription,
                             size: TestAppMainView.descriptionFontSize
                         )
-                        TestAppAssistantDescriptionView(
+                        TestAppSimpleTextView(
                             text: TestAppMainView.assistantDescription,
+                            size: TestAppMainView.descriptionFontSize
+                        )
+                        TestAppSimpleTextView(
+                            text: TestAppMainView.assistantDetailsDescription,
                             size: TestAppMainView.descriptionFontSize
                         )
                         TestAppFormView(
