@@ -16,6 +16,7 @@ public enum DefaultVocalAssistantConfig {
     // unchangeable
     static let uncertaintyThreshold = Float32(0.8)
     static let similarityThreshold = 0.75
+    static let bankAccountSimilarityThreshold = 0.4
     
     // * UI *
     public static let defaultBackgroundColor = Color.clear
@@ -35,6 +36,8 @@ public enum DefaultVocalAssistantConfig {
     public static let defaultRecButtonForegroundColor = Color.white
     
     // * Vocal Assistant *
+    
+    public static let defaultMaxNumOfLastTransactions = 5
     
     // sentences
     public static let defaultStartConversation = "Hi! I can assist you performing some money operations inside the app."
@@ -65,6 +68,7 @@ public struct VocalAssistantCustomConfig {
     let recButtonForegroundColor: Color
     
     // * Vocal Assistant *
+    let maxNumOfLastTransactions: Int
     
     // sentences
     let startConversationQuestion: String
@@ -82,6 +86,7 @@ public struct VocalAssistantCustomConfig {
         recButtonText: String = DefaultVocalAssistantConfig.defaultRecButtonText,
         recButtonFillColor: Color = DefaultVocalAssistantConfig.defaultRecButtonFillColor,
         recButtonForegroundColor: Color = DefaultVocalAssistantConfig.defaultRecButtonForegroundColor,
+        maxNumOfLastTransactions: Int = DefaultVocalAssistantConfig.defaultMaxNumOfLastTransactions,
         startConversationQuestion: String = DefaultVocalAssistantConfig.defaultStartConversation,
         assistantInitializationErrorMessage: String = DefaultVocalAssistantConfig.defaultAssistantInitializationErrorMessage,
         errorResponse: String = DefaultVocalAssistantConfig.defaultErrorResponse
@@ -99,6 +104,7 @@ public struct VocalAssistantCustomConfig {
         self.recButtonFillColor = recButtonFillColor
         self.recButtonForegroundColor = recButtonForegroundColor
         
+        self.maxNumOfLastTransactions = maxNumOfLastTransactions
         self.startConversationQuestion = startConversationQuestion
         self.assistantInitializationErrorMessage = assistantInitializationErrorMessage
         self.errorResponse = errorResponse

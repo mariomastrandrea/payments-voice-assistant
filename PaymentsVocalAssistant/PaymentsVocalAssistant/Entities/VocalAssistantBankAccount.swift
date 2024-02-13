@@ -14,7 +14,7 @@ public struct VocalAssistantBankAccount: CustomStringConvertible, Hashable, Iden
     /** Unique id of the bank account in the app context */
     public let id: String
     
-    /** Name of the bank which will be matched by the vocal assistant */
+    /** Name of the bank account which will be matched by the vocal assistant */
     public let name: String
     
     /** Flag indicating if this is the default (primary) account for the user */
@@ -40,7 +40,7 @@ public struct VocalAssistantBankAccount: CustomStringConvertible, Hashable, Iden
             return self.default
         }
         
-        return self.name.lowercased().similarity(with: literal.lowercased()) >= DefaultVocalAssistantConfig.similarityThreshold
+        return self.name.lowercased().similarity(with: literal.lowercased()) >= DefaultVocalAssistantConfig.bankAccountSimilarityThreshold
     }
     
     public static func == (lhs: VocalAssistantBankAccount, rhs: VocalAssistantBankAccount) -> Bool {

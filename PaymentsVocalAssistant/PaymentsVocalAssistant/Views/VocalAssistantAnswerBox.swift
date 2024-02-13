@@ -11,6 +11,7 @@ struct VocalAssistantAnswerBox: View {
     private let assistantAnswer: String
     private let textColor: Color
     private let boxBackground: Color
+     
     
     init(assistantAnswer: String, textColor: Color, boxBackground: Color) {
         self.assistantAnswer = assistantAnswer
@@ -31,5 +32,9 @@ struct VocalAssistantAnswerBox: View {
 }
 
 #Preview {
-    VocalAssistantAnswerBox(assistantAnswer: "Hi! How can I help you?", textColor: Color.primary, boxBackground: CustomColor.customGray)
+    VocalAssistantAnswerBox(
+        assistantAnswer: "Hi! How can I help you?",
+        textColor: Color.primary,
+        boxBackground: CustomColor.customGray
+    )
 }

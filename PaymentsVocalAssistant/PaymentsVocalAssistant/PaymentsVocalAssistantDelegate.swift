@@ -47,7 +47,7 @@ public protocol PaymentsVocalAssistantDelegate {
 public class AppDelegateStub: PaymentsVocalAssistantDelegate {
     // * currencies *
     
-    public static let dollarCurrency = VocalAssistantCurrency(id: "$", symbols: ["$", "USD"], literals: ["dollar"])
+    public static let dollarCurrency = VocalAssistantCurrency(id: "$", symbols: ["$", "USD"], literals: ["dollar", "buck", "USD", "US dollar"])
     public static let aedCurrency = VocalAssistantCurrency(id: "AED", symbols: ["AED"], literals: ["dirham"])
     
     public static let defaultCurrencies = [

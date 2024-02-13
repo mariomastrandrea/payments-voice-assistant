@@ -15,14 +15,16 @@ public class ConversationManager {
     private let speechSyntesizer: SpeechSynthesizer
     private let appDelegate: PaymentsVocalAssistantDelegate
     private let defaultErrorMessage: String
+    private let maxNumOfLastTransactions: Int
     
     
-    init(speechRecognizer: SpeechRecognizer, dst: VocalAssistantDst, speechSyntesizer: SpeechSynthesizer, appDelegate: PaymentsVocalAssistantDelegate, defaultErrorMessage: String) {
+    init(speechRecognizer: SpeechRecognizer, dst: VocalAssistantDst, speechSyntesizer: SpeechSynthesizer, appDelegate: PaymentsVocalAssistantDelegate, defaultErrorMessage: String, maxNumOfLastTransactions: Int) {
         self.speechRecognizer = speechRecognizer
         self.dst = dst
         self.speechSyntesizer = speechSyntesizer
         self.appDelegate = appDelegate
         self.defaultErrorMessage = defaultErrorMessage
+        self.maxNumOfLastTransactions = maxNumOfLastTransactions
     }
     
     func startConversation() -> String {
@@ -53,6 +55,10 @@ public class ConversationManager {
         logInfo(response.completeAnswer)
         
         return response
+    }
+    
+    func stopSpeaking() {
+        self.speechSyntesizer.stopSpeaking()
     }
     
     private func retrieveResponseAndEventuallyPerformInAppOperation() async -> VocalAssistantResponse {
@@ -101,8 +107,8 @@ public class ConversationManager {
                         answer = successMessage.replacingOccurrences(
                             of: "{transactions}",
                             with: transactions
-                                    .sorted{ t1, t2 in t1.date < t2.date }
-                                    .prefix(10)   // limit to last 10 transactions
+                                    .sorted{ t1, t2 in t1.date > t2.date }
+                                    .prefix(self.maxNumOfLastTransactions)   // limit last transactions number
                                     .map { $0.description }.joined(separator: "\n")
                         )
                     }

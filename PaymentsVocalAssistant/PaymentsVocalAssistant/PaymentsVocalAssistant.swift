@@ -123,6 +123,7 @@ public class PaymentsVocalAssistant {
     public func newConversation(
         withMessage startConversationMessage: String,
         andDefaultErrorMessage defaultErrorMessage: String,
+        maxNumOfLastTransactions: Int,
         appDelegate: PaymentsVocalAssistantDelegate
     ) -> ConversationManager {
         // create a new DST dependency to manage the new conversation
@@ -138,7 +139,8 @@ public class PaymentsVocalAssistant {
             dst: dst,
             speechSyntesizer: self.speechSynthesizer,
             appDelegate: appDelegate,
-            defaultErrorMessage: defaultErrorMessage
+            defaultErrorMessage: defaultErrorMessage,
+            maxNumOfLastTransactions: maxNumOfLastTransactions
         )
     }
 }

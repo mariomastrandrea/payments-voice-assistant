@@ -9,15 +9,19 @@ import SwiftUI
 import UIKit
 
 public struct VocalAssistantActivityIndicator: View {
+    private let style: UIActivityIndicatorView.Style
+    
     public var body: some View {
         HStack(alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/) {
-            SwiftUIActivityIndicator()
+            SwiftUIActivityIndicator(style: self.style)
         }
         .frame(maxWidth: .infinity)
         .padding(20)
     }
     
-    public init() {}
+    public init(style: UIActivityIndicatorView.Style = .large) {
+        self.style = style
+    }
 }
 
 /** Basic Activity Indicator wrapper of the UIKit ActivityIndicatorView, to make it compatible with iOS 13 */
