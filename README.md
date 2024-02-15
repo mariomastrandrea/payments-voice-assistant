@@ -11,7 +11,7 @@ It consists of a Voice Assistant for an iOS Payment App utilizing advanced AI mo
 - `/vocalAssistant_info.txt` contains some notes useful for the design of the model
 
 
-## Voice Assistant details
+## Voice Assistant details
 My Voice Assistant can help you perform the following tasks:
 -  send money to another user
 -  request money from another user
