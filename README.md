@@ -10,6 +10,7 @@ It consists of a Voice Assistant for an iOS Payment App utilizing advanced AI mo
 - `/customLMscripts` contains the Python scripts used to generate the sentence templates useful to create a custom Language Model for the iOS 17 Speech Recognizer class, fine-tuning the iOS Speech Recognition model
 - `/vocalAssistant_info.txt` contains some notes useful for the design of the model
 
+
 ## Voice Assistant details
 My Voice Assistant can help you perform the following tasks:
 -  send money to another user
