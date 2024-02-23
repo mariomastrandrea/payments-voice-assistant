@@ -25,7 +25,7 @@ The assistant works *entirely* on the user device, from voice recognition to ans
 - Speech-to-Text performed with the iOS SpeechRecognizer class
 - Custom Language Model created to fine-tune the iOS SpeechRecognizer class for the specific task, using the new iOS 17 APIs
 - BERT preprocessor implementation in Swift
-- Custom NLP model created and fine-tuned in Tensorflow (Python) to classify user transcript into actual inent and extract relevant entities (intent classification + entity extraction)
+- Custom NLP model created and fine-tuned in Tensorflow (Python) to classify user transcript into actual intent and extract relevant entities (intent classification + entity extraction)
 - Quantized classification model integrated into iOS using TensorflowLite SDK
 - Dialogue State Tracker (DST) implemented in Swift to manage the conversation as a State Machine (application of the State Pattern)
 - Text-to-Speech performed with the iOS Speech Synthesizer class
