@@ -1,4 +1,4 @@
-# Payments Vocal Assistant
+# Payments Voice Assistant
 
 This is the repository containing all code used for the Master's Thesis of the author: *Developing an AI-Powered Voice Assistant for an iOS Payment App*. 
 It consists of a Voice Assistant for an iOS Payment App utilizing advanced AI models to convert user speech into in-app P2P payment operations, prioritizing user privacy through local processing, and enhancing app accessibility via an intuitive UI/UX design with SwiftUI framework.
